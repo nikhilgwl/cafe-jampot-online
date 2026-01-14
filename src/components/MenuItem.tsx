@@ -14,11 +14,11 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   const quantity = cartItem?.quantity || 0;
 
   return (
-    <div className="menu-card flex justify-between items-center gap-4 animate-fade-in">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+    <div className="menu-card flex flex-col h-full animate-fade-in">
+      <div className="flex-1 min-w-0 mb-3">
+        <div className="flex items-start gap-2 mb-2">
           <span
-            className={`w-4 h-4 border-2 flex items-center justify-center rounded-sm text-xs ${
+            className={`w-4 h-4 border-2 flex items-center justify-center rounded-sm text-xs flex-shrink-0 mt-0.5 ${
               item.isVeg
                 ? 'border-sage text-sage'
                 : 'border-terracotta text-terracotta'
@@ -26,22 +26,22 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
           >
             ●
           </span>
-          <h3 className="font-medium text-foreground truncate">{item.name}</h3>
+          <h3 className="font-medium text-foreground text-sm leading-tight">{item.name}</h3>
         </div>
         <p className="text-lg font-semibold text-primary">₹{item.price}</p>
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center justify-center mt-auto">
         {quantity === 0 ? (
           <Button
             onClick={() => addItem(item)}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold w-full"
           >
             ADD
           </Button>
         ) : (
-          <div className="flex items-center gap-2 bg-primary rounded-lg overflow-hidden">
+          <div className="flex items-center gap-2 bg-primary rounded-lg overflow-hidden w-full justify-center">
             <button
               onClick={() => updateQuantity(item.id, quantity - 1)}
               className="p-2 text-primary-foreground hover:bg-primary/80 transition-colors"

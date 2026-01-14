@@ -1,13 +1,14 @@
 import React from 'react';
-import { getItemsByCategory, categories } from '@/data/menuData';
+import { MenuItem as MenuItemType, categories } from '@/data/menuData';
 import MenuItem from './MenuItem';
 
 interface MenuSectionProps {
   categoryId: string;
+  items: MenuItemType[];
+  searchQuery?: string;
 }
 
-const MenuSection: React.FC<MenuSectionProps> = ({ categoryId }) => {
-  const items = getItemsByCategory(categoryId);
+const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuery }) => {
   const category = categories.find(c => c.id === categoryId);
 
   if (items.length === 0) return null;
@@ -18,8 +19,13 @@ const MenuSection: React.FC<MenuSectionProps> = ({ categoryId }) => {
         <h2 className="font-display text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <span>{category?.icon}</span>
           {category?.name}
+          {searchQuery && (
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              ({items.length} found)
+            </span>
+          )}
         </h2>
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {items.map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
