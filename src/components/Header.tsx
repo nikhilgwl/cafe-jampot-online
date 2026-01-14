@@ -5,19 +5,19 @@ const Header: React.FC = () => {
   return (
     <header className="hero-section text-primary-foreground py-8 px-4">
       <div className="cafe-container text-center">
-        <div className="flex flex-col items-center justify-center mb-2">
+        <div className="flex items-center justify-center gap-2 mb-2">
           <img 
             src={jampotLogo} 
             alt="Cafe Jampot Logo" 
-            className="w-20 h-20 object-contain drop-shadow-lg"
+            className="w-8 h-8 object-contain drop-shadow-lg"
           />
-          <h1 className="font-display text-3xl font-bold tracking-wide uppercase mt-2">
+          <h1 className="font-display text-3xl font-bold tracking-wide uppercase">
             Café Jampot
           </h1>
-          <p className="text-primary-foreground/80 text-sm font-medium tracking-widest mt-1">
-            ESTD. 2022
-          </p>
         </div>
+        <p className="text-primary-foreground/80 text-sm font-medium tracking-widest">
+          ESTD. 2022
+        </p>
         <p className="text-primary-foreground/90 text-sm font-medium mt-3">
           XLRI Campus • Fresh & Delicious
         </p>

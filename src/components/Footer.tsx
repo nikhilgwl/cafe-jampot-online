@@ -6,11 +6,11 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-8 px-4 mt-8 pb-32">
       <div className="cafe-container text-center space-y-4">
-        <div className="flex flex-col items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <img 
             src={jampotLogo} 
             alt="Cafe Jampot Logo" 
-            className="w-12 h-12 object-contain"
+            className="w-5 h-5 object-contain"
           />
           <span className="font-display text-lg font-semibold">Cafe Jampot</span>
         </div>
