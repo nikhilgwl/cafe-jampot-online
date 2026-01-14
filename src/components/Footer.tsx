@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
         </div>
 
         <a
-          href="https://instagram.com/cafejampot"
+          href="https://www.instagram.com/cafejampot?igsh=MXNmMjY3aTAwaGVuOA=="
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-sm hover:text-primary-foreground/80 transition-colors"
