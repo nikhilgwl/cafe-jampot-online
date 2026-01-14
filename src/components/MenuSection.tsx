@@ -25,7 +25,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuer
             </span>
           )}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
           {items.map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
