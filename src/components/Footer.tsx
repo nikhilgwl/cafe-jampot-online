@@ -1,12 +1,17 @@
 import React from 'react';
-import { Instagram, Phone, Coffee } from 'lucide-react';
+import { Instagram, Phone } from 'lucide-react';
+import jampotLogo from '@/assets/cafe-jampot-logo.png';
 
 const Footer: React.FC = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-8 px-4 mt-8 pb-32">
       <div className="cafe-container text-center space-y-4">
-        <div className="flex items-center justify-center gap-2">
-          <Coffee className="w-5 h-5" />
+        <div className="flex flex-col items-center justify-center gap-2">
+          <img 
+            src={jampotLogo} 
+            alt="Cafe Jampot Logo" 
+            className="w-12 h-12 object-contain"
+          />
           <span className="font-display text-lg font-semibold">Cafe Jampot</span>
         </div>
 
@@ -32,7 +37,7 @@ const Footer: React.FC = () => {
         </a>
 
         <p className="text-primary-foreground/60 text-xs pt-4">
-          © 2024 Cafe Jampot. Made with ☕ at XLRI
+          © 2026 Cafe Jampot. Made with ☕ at XLRI
         </p>
       </div>
     </footer>
