@@ -23,7 +23,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   return (
     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border py-3">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div ref={containerRef} className="flex gap-2 px-4">
+        <div ref={containerRef} className="flex gap-2 px-4 max-w-7xl mx-auto">
           {categories.map((category) => (
             <button
               key={category.id}

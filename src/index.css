@@ -130,7 +130,7 @@
 
 @layer components {
   .cafe-container {
-    @apply max-w-lg mx-auto px-4;
+    @apply max-w-7xl mx-auto px-4;
   }
 
   .menu-card {
