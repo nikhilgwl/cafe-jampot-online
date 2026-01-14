@@ -44,41 +44,70 @@ export const menuItems: MenuItem[] = [
   { id: "10", name: "Plain Maggi", price: 50, category: "quick-bites", isVeg: true },
   { id: "11", name: "Vegetable Maggi", price: 60, category: "quick-bites", isVeg: true },
   { id: "12", name: "Cheese Maggi", price: 65, category: "quick-bites", isVeg: true },
-  { id: "13", name: "Chili Pan Fried Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
-  { id: "14", name: "Kurkure Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
+  // Momos - Veg
+  { id: "13", name: "Veg Chili Pan Fried Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
+  { id: "14", name: "Veg Kurkure Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
+  // Momos - Non-Veg
+  { id: "13a", name: "Chicken Chili Pan Fried Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
+  { id: "14a", name: "Chicken Kurkure Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
 
   // Sandwiches
   { id: "15", name: "Paneer Grill Sandwich", price: 90, category: "sandwiches", isVeg: true },
   { id: "16", name: "Corn Cheese Mayo Sandwich", price: 100, category: "sandwiches", isVeg: true },
   { id: "17", name: "Grill Sandwich", price: 60, category: "sandwiches", isVeg: true },
   { id: "18", name: "Cheese Grill Sandwich", price: 80, category: "sandwiches", isVeg: true },
+  { id: "18a", name: "Chicken Grill Sandwich", price: 110, category: "sandwiches", isVeg: false },
 
-  // Pasta
-  { id: "19", name: "Red Sauce Pasta", price: 130, category: "pasta", isVeg: true },
-  { id: "20", name: "White Sauce Pasta", price: 130, category: "pasta", isVeg: true },
-  { id: "21", name: "Pink Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  // Pasta - Veg
+  { id: "19", name: "Veg Red Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  { id: "20", name: "Veg White Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  { id: "21", name: "Veg Pink Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  // Pasta - Non-Veg
+  { id: "19a", name: "Chicken Red Sauce Pasta", price: 150, category: "pasta", isVeg: false },
+  { id: "20a", name: "Chicken White Sauce Pasta", price: 150, category: "pasta", isVeg: false },
+  { id: "21a", name: "Chicken Pink Sauce Pasta", price: 150, category: "pasta", isVeg: false },
 
-  // Chinese
-  { id: "22", name: "Chow Mein", price: 120, category: "chinese", isVeg: true },
-  { id: "23", name: "Garlic Chow Mein", price: 130, category: "chinese", isVeg: true },
-  { id: "24", name: "Schezwan Chow Mein", price: 130, category: "chinese", isVeg: true },
+  // Chinese - Veg
+  { id: "22", name: "Veg Chow Mein", price: 120, category: "chinese", isVeg: true },
+  { id: "23", name: "Veg Garlic Chow Mein", price: 130, category: "chinese", isVeg: true },
+  { id: "24", name: "Veg Schezwan Chow Mein", price: 130, category: "chinese", isVeg: true },
+  // Chinese - Non-Veg
+  { id: "22a", name: "Chicken Chow Mein", price: 140, category: "chinese", isVeg: false },
+  { id: "23a", name: "Chicken Garlic Chow Mein", price: 150, category: "chinese", isVeg: false },
+  { id: "24a", name: "Chicken Schezwan Chow Mein", price: 150, category: "chinese", isVeg: false },
+  { id: "22b", name: "Egg Chow Mein", price: 130, category: "chinese", isVeg: false },
+  { id: "23b", name: "Egg Garlic Chow Mein", price: 140, category: "chinese", isVeg: false },
+  { id: "24b", name: "Egg Schezwan Chow Mein", price: 140, category: "chinese", isVeg: false },
 
-  // Fried Rice
-  { id: "25", name: "Fried Rice", price: 120, category: "fried-rice", isVeg: true },
-  { id: "26", name: "Garlic Fried Rice", price: 130, category: "fried-rice", isVeg: true },
-  { id: "27", name: "Schezwan Fried Rice", price: 130, category: "fried-rice", isVeg: true },
+  // Fried Rice - Veg
+  { id: "25", name: "Veg Fried Rice", price: 120, category: "fried-rice", isVeg: true },
+  { id: "26", name: "Veg Garlic Fried Rice", price: 130, category: "fried-rice", isVeg: true },
+  { id: "27", name: "Veg Schezwan Fried Rice", price: 130, category: "fried-rice", isVeg: true },
+  // Fried Rice - Non-Veg
+  { id: "25a", name: "Chicken Fried Rice", price: 140, category: "fried-rice", isVeg: false },
+  { id: "26a", name: "Chicken Garlic Fried Rice", price: 150, category: "fried-rice", isVeg: false },
+  { id: "27a", name: "Chicken Schezwan Fried Rice", price: 150, category: "fried-rice", isVeg: false },
+  { id: "25b", name: "Egg Fried Rice", price: 130, category: "fried-rice", isVeg: false },
+  { id: "26b", name: "Egg Garlic Fried Rice", price: 140, category: "fried-rice", isVeg: false },
+  { id: "27b", name: "Egg Schezwan Fried Rice", price: 140, category: "fried-rice", isVeg: false },
 
-  // Mains
+  // Mains - Veg
   { id: "28", name: "Chili Paneer (Dry)", price: 130, category: "mains", isVeg: true },
   { id: "29", name: "Chili Paneer (Gravy)", price: 130, category: "mains", isVeg: true },
+  // Mains - Non-Veg
+  { id: "28a", name: "Chili Chicken (Dry)", price: 150, category: "mains", isVeg: false },
+  { id: "29a", name: "Chili Chicken (Gravy)", price: 150, category: "mains", isVeg: false },
 
-  // Soups (Winter Special)
-  { id: "30", name: "Manchow Soup (Small)", price: 50, category: "soups", isVeg: true },
-  { id: "31", name: "Manchow Soup (Large)", price: 65, category: "soups", isVeg: true },
+  // Soups (Winter Special) - Veg
+  { id: "30", name: "Veg Manchow Soup (Small)", price: 50, category: "soups", isVeg: true },
+  { id: "31", name: "Veg Manchow Soup (Large)", price: 65, category: "soups", isVeg: true },
   { id: "32", name: "Lemon Coriander Soup (Small)", price: 50, category: "soups", isVeg: true },
   { id: "33", name: "Lemon Coriander Soup (Large)", price: 65, category: "soups", isVeg: true },
   { id: "34", name: "Chef's Special Soup (Small)", price: 50, category: "soups", isVeg: true },
   { id: "35", name: "Chef's Special Soup (Large)", price: 65, category: "soups", isVeg: true },
+  // Soups - Non-Veg
+  { id: "30a", name: "Chicken Manchow Soup (Small)", price: 60, category: "soups", isVeg: false },
+  { id: "31a", name: "Chicken Manchow Soup (Large)", price: 80, category: "soups", isVeg: false },
 
   // Winter Special Quick Bites
   { id: "36", name: "Chilli Oil Eggs", price: 80, category: "winter-special", isVeg: false },
