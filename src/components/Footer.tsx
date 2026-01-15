@@ -1,39 +1,48 @@
 import React from 'react';
-import { Instagram, Phone } from 'lucide-react';
+import { Instagram, Phone, MapPin } from 'lucide-react';
 import jampotLogo from '@/assets/cafe-jampot-logo.png';
 
 const Footer: React.FC = () => {
   return (
-<footer className="mt-auto bg-primary text-primary-foreground py-4 px-4">
+    <footer className="mt-auto bg-primary text-primary-foreground py-4 px-4 border-t border-primary-foreground/10">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <img 
-              src={jampotLogo} 
-              alt="Cafe Jampot Logo" 
-              className="w-5 h-5 object-contain"
-            />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary-foreground/10 p-1 flex items-center justify-center">
+              <img 
+                src={jampotLogo} 
+                alt="Cafe Jampot Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
             <span className="font-display text-base font-semibold">Cafe Jampot</span>
           </div>
 
-          <div className="flex items-center gap-4 text-sm">
-            <p className="flex items-center gap-1.5 text-primary-foreground/90">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+            <a 
+              href="tel:+918789512909"
+              className="flex items-center gap-1.5 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            >
               <Phone className="w-3.5 h-3.5" />
               <span>+91 8789512909</span>
-            </p>
+            </a>
             <a
               href="https://www.instagram.com/cafejampot?igsh=MXNmMjY3aTAwaGVuOA=="
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+              className="flex items-center gap-1.5 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
               <Instagram className="w-3.5 h-3.5" />
               @cafejampot
             </a>
+            <span className="flex items-center gap-1.5 text-primary-foreground/60">
+              <MapPin className="w-3.5 h-3.5" />
+              XLRI Campus
+            </span>
           </div>
 
-          <p className="text-primary-foreground/60 text-xs">
-            © 2026 Cafe Jampot, XLRI
+          <p className="text-primary-foreground/50 text-xs">
+            © 2026 Cafe Jampot
           </p>
         </div>
       </div>
