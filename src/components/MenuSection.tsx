@@ -14,20 +14,31 @@ const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuer
   if (items.length === 0) return null;
 
   return (
-    <section id={`section-${categoryId}`} className="py-4 px-4 scroll-mt-36">
+    <section id={`section-${categoryId}`} className="py-6 px-4 scroll-mt-36">
       <div className="cafe-container">
-        <h2 className="font-display text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
-          <span>{category?.icon}</span>
-          {category?.name}
-          {searchQuery && (
-            <span className="text-sm font-normal text-muted-foreground ml-2">
-              ({items.length} found)
-            </span>
-          )}
-        </h2>
-        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-          {items.map((item) => (
-            <MenuItem key={item.id} item={item} />
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="section-header">
+            <span className="text-2xl">{category?.icon}</span>
+            <span>{category?.name}</span>
+            {searchQuery && (
+              <span className="text-sm font-normal text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                {items.length} found
+              </span>
+            )}
+          </h2>
+          <span className="text-sm text-muted-foreground hidden sm:block">
+            {items.length} items
+          </span>
+        </div>
+        <div className="grid gap-4 sm:gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+          {items.map((item, index) => (
+            <div 
+              key={item.id} 
+              style={{ animationDelay: `${index * 50}ms` }}
+              className="animate-fade-in"
+            >
+              <MenuItem item={item} />
+            </div>
           ))}
         </div>
       </div>
