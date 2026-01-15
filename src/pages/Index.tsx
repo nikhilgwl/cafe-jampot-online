@@ -4,33 +4,35 @@ import Header from '@/components/Header';
 import CategoryFilter from '@/components/CategoryFilter';
 import MenuSection from '@/components/MenuSection';
 import SearchBar from '@/components/SearchBar';
+import VegFilter, { VegFilterType } from '@/components/VegFilter';
 import FloatingCart from '@/components/FloatingCart';
 import CartSheet from '@/components/CartSheet';
 import Footer from '@/components/Footer';
 import { categories, getItemsByCategory, menuItems } from '@/data/menuData';
+import { fuzzyMatch } from '@/lib/fuzzySearch';
 
 const IndexContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState(categories[0].id);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [vegFilter, setVegFilter] = useState<VegFilterType>('all');
+
+  const applyVegFilter = (items: typeof menuItems) => {
+    if (vegFilter === 'all') return items;
+    if (vegFilter === 'veg') return items.filter(item => item.isVeg);
+    return items.filter(item => !item.isVeg);
+  };
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
+    let items = getItemsByCategory(selectedCategory);
     
-    if (!query) {
-      // No search, return items for selected category
-      return getItemsByCategory(selectedCategory);
+    if (query) {
+      items = items.filter(item => fuzzyMatch(item.name, query));
     }
     
-    // Search across all items or within selected category
-    const itemsToSearch = selectedCategory === 'all' 
-      ? menuItems 
-      : getItemsByCategory(selectedCategory);
-    
-    return itemsToSearch.filter(item => 
-      item.name.toLowerCase().includes(query)
-    );
-  }, [searchQuery, selectedCategory]);
+    return applyVegFilter(items);
+  }, [searchQuery, selectedCategory, vegFilter]);
 
   const allCategoryItems = useMemo(() => {
     if (!searchQuery.trim()) return null;
@@ -40,31 +42,47 @@ const IndexContent: React.FC = () => {
     const query = searchQuery.toLowerCase().trim();
     
     menuItems.forEach(item => {
-      if (item.name.toLowerCase().includes(query)) {
+      if (fuzzyMatch(item.name, query)) {
         if (!grouped[item.category]) {
           grouped[item.category] = [];
         }
         grouped[item.category].push(item);
       }
     });
+
+    // Apply veg filter to grouped results
+    Object.keys(grouped).forEach(category => {
+      grouped[category] = applyVegFilter(grouped[category]);
+      if (grouped[category].length === 0) {
+        delete grouped[category];
+      }
+    });
     
     return grouped;
-  }, [searchQuery]);
+  }, [searchQuery, vegFilter]);
 
-  const showAllResults = searchQuery.trim() && selectedCategory === categories[0].id;
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    // When search is cleared, keep the selected category (already default behavior)
+  };
+
+  const showAllResults = searchQuery.trim() && Object.keys(allCategoryItems || {}).length > 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
-      {/* Search Bar */}
+      {/* Search Bar and Veg Filter */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
-        <div className="cafe-container">
-          <SearchBar 
-            value={searchQuery} 
-            onChange={setSearchQuery}
-            placeholder="Search menu items..."
-          />
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex-1 w-full">
+            <SearchBar 
+              value={searchQuery} 
+              onChange={handleSearchChange}
+              placeholder="Search menu items..."
+            />
+          </div>
+          <VegFilter value={vegFilter} onChange={setVegFilter} />
         </div>
       </div>
       
@@ -72,13 +90,12 @@ const IndexContent: React.FC = () => {
         selectedCategory={selectedCategory}
         onCategoryChange={(cat) => {
           setSelectedCategory(cat);
-          if (searchQuery) setSearchQuery('');
         }}
       />
       
-      <main className="pb-24">
+      <main className="flex-1 pb-24">
         {showAllResults && allCategoryItems ? (
-          // Show grouped results when searching in "All" category
+          // Show grouped results when searching
           Object.entries(allCategoryItems).map(([categoryId, items]) => (
             <MenuSection 
               key={categoryId} 
@@ -87,8 +104,17 @@ const IndexContent: React.FC = () => {
               searchQuery={searchQuery}
             />
           ))
+        ) : !searchQuery.trim() ? (
+          // Show items for selected category (no search)
+          categories.map((category) => (
+            <MenuSection 
+              key={category.id}
+              categoryId={category.id} 
+              items={applyVegFilter(getItemsByCategory(category.id))}
+            />
+          ))
         ) : (
-          // Show single category results
+          // Search active but in specific category
           <MenuSection 
             categoryId={selectedCategory} 
             items={filteredItems}
@@ -99,15 +125,8 @@ const IndexContent: React.FC = () => {
         {searchQuery && filteredItems.length === 0 && !showAllResults && (
           <div className="text-center py-12 px-4">
             <p className="text-muted-foreground">
-              No items found for "{searchQuery}" in this category
-            </p>
-          </div>
-        )}
-        
-        {searchQuery && showAllResults && Object.keys(allCategoryItems || {}).length === 0 && (
-          <div className="text-center py-12 px-4">
-            <p className="text-muted-foreground">
               No items found for "{searchQuery}"
+              {vegFilter !== 'all' && ` in ${vegFilter === 'veg' ? 'vegetarian' : 'non-vegetarian'} options`}
             </p>
           </div>
         )}
