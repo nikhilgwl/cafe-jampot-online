@@ -19,15 +19,18 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onViewCart }) => {
           onClick={onViewCart}
           className='
         max-w-3xl mx-auto
-        bg-primary/95 backdrop-blur-xl
-        hover:bg-primary
+        bg-secondary backdrop-blur-xl
+        hover:bg-yellow-500
+        text-secondary-foreground
+        border-2 border-secondary/30
         py-4 px-4
         rounded-3xl
         flex items-center justify-between
-        shadow-2xl shadow-primary/30
+        shadow-2xl shadow-secondary/25
         transition-all duration-200
         hover:scale-[1.015]
         active:scale-[0.98]
+        hover:border-secondary/50
       '
         >
           {/* Left Section */}
@@ -55,7 +58,7 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onViewCart }) => {
 
             <div className='leading-tight'>
               <span className='font-semibold block text-sm'>View Cart</span>
-              <span className='text-xs'>{totalItems} items added</span>
+              <span className='text-xs opacity-80'>{totalItems} items added</span>
             </div>
           </div>
 

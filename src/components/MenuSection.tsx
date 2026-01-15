@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { MenuItem as MenuItemType, categories } from '@/data/menuData';
 import MenuItem from './MenuItem';
 
@@ -8,7 +8,7 @@ interface MenuSectionProps {
   searchQuery?: string;
 }
 
-const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuery }) => {
+const MenuSection: React.FC<MenuSectionProps> = memo(({ categoryId, items, searchQuery }) => {
   const category = categories.find(c => c.id === categoryId);
 
   if (items.length === 0) return null;
@@ -44,6 +44,8 @@ const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuer
       </div>
     </section>
   );
-};
+});
+
+MenuSection.displayName = 'MenuSection';
 
 export default MenuSection;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import { MenuItem as MenuItemType } from '@/data/menuData';
 import { useCart } from '@/context/CartContext';
@@ -8,7 +8,7 @@ interface MenuItemProps {
   item: MenuItemType;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
+const MenuItem: React.FC<MenuItemProps> = memo(({ item }) => {
   const { items, addItem, updateQuantity } = useCart();
   const cartItem = items.find(i => i.id === item.id);
   const quantity = cartItem?.quantity || 0;
@@ -63,6 +63,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
       </div>
     </div>
   );
-};
+});
+
+MenuItem.displayName = 'MenuItem';
 
 export default MenuItem;

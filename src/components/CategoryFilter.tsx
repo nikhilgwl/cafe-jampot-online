@@ -15,7 +15,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   return (
-    <div className="bg-background/95 backdrop-blur-md border-b border-border py-3 px-4">
+    <div className="sticky top-[68px] sm:top-[68px] z-30 bg-background/95 backdrop-blur-md border-b border-border py-3 px-4 shadow-sm">
       <div className="flex flex-wrap gap-2 max-w-7xl mx-auto justify-center">
         {categories.map((category) => (
           <button

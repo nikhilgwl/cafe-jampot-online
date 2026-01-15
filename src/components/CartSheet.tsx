@@ -81,8 +81,11 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
       )
       .join("\n");
 
+    // Use customHostel if "Other" is selected, otherwise use the selected hostel
     const hostelName =
-      customerDetails.hostel || customerDetails.customHostel || "";
+      customerDetails.hostel === "Other"
+        ? customerDetails.customHostel || ""
+        : customerDetails.hostel || "";
 
     const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${orderItems}\n\n💰 *Total: ₹${totalPrice}*`;
 

@@ -23,6 +23,17 @@ const IndexContent: React.FC = () => {
     return items.filter((item) => !item.isVeg);
   };
 
+  // Pre-compute and cache all category items with veg filter applied
+  const cachedCategoryItems = useMemo(() => {
+    const cache: { [key: string]: typeof menuItems } = {};
+    categories.forEach((category) => {
+      if (category.id !== "all") {
+        cache[category.id] = applyVegFilter(getItemsByCategory(category.id));
+      }
+    });
+    return cache;
+  }, [vegFilter]);
+
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     let items =
@@ -115,7 +126,7 @@ const IndexContent: React.FC = () => {
             categories
               .filter((cat) => cat.id !== "all")
               .map((category) => {
-                const items = applyVegFilter(getItemsByCategory(category.id));
+                const items = cachedCategoryItems[category.id] || [];
                 return items.length > 0 ? (
                   <MenuSection
                     key={category.id}
@@ -127,9 +138,7 @@ const IndexContent: React.FC = () => {
           ) : (
             // Show only selected category
             (() => {
-              const items = applyVegFilter(
-                getItemsByCategory(selectedCategory)
-              );
+              const items = cachedCategoryItems[selectedCategory] || [];
               return items.length > 0 ? (
                 <MenuSection categoryId={selectedCategory} items={items} />
               ) : null;
