@@ -252,7 +252,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
                         const value = e.target.value;
                         setCustomerDetails((prev) => ({
                           ...prev,
-                          hostel: value === "Other" ? "" : value,
+                          hostel: value,
                         }));
                       }}
                       className='w-full rounded-md bg-secondary border border-border px-3 py-2 text-sm'
@@ -268,7 +268,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
                     </select>
 
                     {/* Show only if Other is selected */}
-                    {customerDetails.hostel === "" && (
+                    {customerDetails.hostel === "Other" && (
                       <Input
                         placeholder='Enter hostel name'
                         value={customerDetails.customHostel || ""}
