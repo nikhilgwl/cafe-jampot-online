@@ -1,251 +1,214 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
 @layer base {
-  :root {
-    /* Jampot brand palette - Purple & Yellow */
-    --background: 0 0% 100%;
-    --foreground: 280 30% 20%;
-
-    --card: 0 0% 99%;
-    --card-foreground: 280 30% 20%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 280 30% 20%;
-
-    /* Deep purple from logo */
-    --primary: 280 45% 35%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Warm yellow/gold from logo lid */
-    --secondary: 45 90% 70%;
-    --secondary-foreground: 280 30% 20%;
-
-    --muted: 280 10% 95%;
-    --muted-foreground: 280 15% 45%;
-
-    /* Yellow accent */
-    --accent: 45 95% 55%;
-    --accent-foreground: 280 30% 20%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 280 15% 88%;
-    --input: 280 15% 88%;
-    --ring: 280 45% 35%;
-
-    --radius: 0.75rem;
-
-    /* Custom Jampot tokens */
-    --jampot-purple: 280 45% 35%;
-    --jampot-yellow: 45 90% 65%;
-    --jampot-gold: 40 85% 55%;
-    --sage: 140 25% 45%;
-    --terracotta: 15 70% 50%;
-
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(280 45% 35%) 0%, hsl(280 50% 25%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(280 10% 97%) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(45 90% 70%) 0%, hsl(40 85% 60%) 100%);
-
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(280 30% 20% / 0.1);
-    --shadow-card: 0 8px 30px -8px hsl(280 30% 20% / 0.12);
-    --shadow-elevated: 0 20px 50px -12px hsl(280 30% 20% / 0.2);
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 280 45% 35%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 280 10% 95%;
-    --sidebar-accent-foreground: 280 30% 20%;
-    --sidebar-border: 280 15% 88%;
-    --sidebar-ring: 280 45% 35%;
-  }
-
-  .dark {
-    --background: 280 25% 8%;
-    --foreground: 45 30% 95%;
-
-    --card: 280 20% 12%;
-    --card-foreground: 45 30% 95%;
-
-    --popover: 280 20% 12%;
-    --popover-foreground: 45 30% 95%;
-
-    /* Lighter purple for dark mode */
-    --primary: 280 50% 65%;
-    --primary-foreground: 280 25% 8%;
-
-    --secondary: 45 70% 50%;
-    --secondary-foreground: 280 25% 8%;
-
-    --muted: 280 15% 18%;
-    --muted-foreground: 280 10% 60%;
-
-    --accent: 45 85% 55%;
-    --accent-foreground: 280 25% 8%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 280 15% 22%;
-    --input: 280 15% 22%;
-    --ring: 280 50% 65%;
-
-    /* Dark mode tokens */
-    --jampot-purple: 280 50% 65%;
-    --jampot-yellow: 45 80% 55%;
-    --jampot-gold: 40 75% 50%;
-
-    --sidebar-background: 280 25% 10%;
-    --sidebar-foreground: 45 30% 95%;
-    --sidebar-primary: 280 50% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 15% 18%;
-    --sidebar-accent-foreground: 45 30% 95%;
-    --sidebar-border: 280 15% 22%;
-    --sidebar-ring: 280 50% 65%;
-  }
+     :root {
+        /* Jampot brand palette - Purple & Yellow */
+        --background: 0 0% 100%;
+        --foreground: 280 30% 20%;
+        --card: 0 0% 99%;
+        --card-foreground: 280 30% 20%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 280 30% 20%;
+        /* Deep purple from logo */
+        --primary: 280 45% 35%;
+        --primary-foreground: 0 0% 100%;
+        /* Warm yellow/gold from logo lid */
+        --secondary: 45 90% 70%;
+        --secondary-foreground: 280 30% 20%;
+        --muted: 280 10% 95%;
+        --muted-foreground: 280 15% 45%;
+        /* Yellow accent */
+        --accent: 45 95% 55%;
+        --accent-foreground: 280 30% 20%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 280 15% 88%;
+        --input: 280 15% 88%;
+        --ring: 280 45% 35%;
+        --radius: 0.75rem;
+        /* Custom Jampot tokens */
+        --jampot-purple: 280 45% 35%;
+        --jampot-yellow: 45 90% 65%;
+        --jampot-gold: 40 85% 55%;
+        --sage: 140 25% 45%;
+        --terracotta: 15 70% 50%;
+        /* Gradients */
+        --gradient-hero: linear-gradient(135deg, hsl(280 45% 35%) 0%, hsl(280 50% 25%) 100%);
+        --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(280 10% 97%) 100%);
+        --gradient-warm: linear-gradient(135deg, hsl(45 90% 70%) 0%, hsl(40 85% 60%) 100%);
+        /* Shadows */
+        --shadow-soft: 0 4px 20px -4px hsl(280 30% 20% / 0.1);
+        --shadow-card: 0 8px 30px -8px hsl(280 30% 20% / 0.12);
+        --shadow-elevated: 0 20px 50px -12px hsl(280 30% 20% / 0.2);
+        --sidebar-background: 0 0% 98%;
+        --sidebar-foreground: 240 5.3% 26.1%;
+        --sidebar-primary: 280 45% 35%;
+        --sidebar-primary-foreground: 0 0% 98%;
+        --sidebar-accent: 280 10% 95%;
+        --sidebar-accent-foreground: 280 30% 20%;
+        --sidebar-border: 280 15% 88%;
+        --sidebar-ring: 280 45% 35%;
+    }
+    .dark {
+        --background: 280 25% 8%;
+        --foreground: 45 30% 95%;
+        --card: 280 20% 12%;
+        --card-foreground: 45 30% 95%;
+        --popover: 280 20% 12%;
+        --popover-foreground: 45 30% 95%;
+        /* Lighter purple for dark mode */
+        --primary: 280 50% 65%;
+        --primary-foreground: 280 25% 8%;
+        --secondary: 45 70% 50%;
+        --secondary-foreground: 280 25% 8%;
+        --muted: 280 15% 18%;
+        --muted-foreground: 280 10% 60%;
+        --accent: 45 85% 55%;
+        --accent-foreground: 280 25% 8%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 280 15% 22%;
+        --input: 280 15% 22%;
+        --ring: 280 50% 65%;
+        /* Dark mode tokens */
+        --jampot-purple: 280 50% 65%;
+        --jampot-yellow: 45 80% 55%;
+        --jampot-gold: 40 75% 50%;
+        --sidebar-background: 280 25% 10%;
+        --sidebar-foreground: 45 30% 95%;
+        --sidebar-primary: 280 50% 65%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 280 15% 18%;
+        --sidebar-accent-foreground: 45 30% 95%;
+        --sidebar-border: 280 15% 22%;
+        --sidebar-ring: 280 50% 65%;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
-  }
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Playfair Display', serif;
+    }
 }
 
 @layer components {
-  .cafe-container {
-    @apply max-w-7xl mx-auto px-4;
-  }
-
-  .menu-card {
-    @apply bg-card rounded-2xl p-5 transition-all duration-300 border border-border/50;
-    box-shadow: 0 1px 3px hsl(280 30% 20% / 0.04), 0 4px 12px hsl(280 30% 20% / 0.06);
-    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(280 10% 98%) 100%);
-  }
-
-  .menu-card:hover {
-    box-shadow: 0 4px 12px hsl(280 30% 20% / 0.08), 0 12px 32px hsl(280 30% 20% / 0.12);
-    transform: translateY(-4px);
-    border-color: hsl(280 45% 75% / 0.3);
-  }
-
-  .category-pill {
-    @apply px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border-2 border-transparent;
-  }
-
-  .category-pill-active {
-    @apply bg-primary text-primary-foreground border-primary;
-    box-shadow: 0 4px 14px hsl(280 45% 35% / 0.35);
-  }
-
-  .category-pill-inactive {
-    @apply bg-secondary/60 text-secondary-foreground hover:bg-secondary border-secondary/30;
-  }
-
-  .category-pill-inactive:hover {
-    box-shadow: 0 2px 8px hsl(45 90% 65% / 0.25);
-    transform: translateY(-1px);
-  }
-
-  .cart-badge {
-    @apply absolute -top-2 -right-2 w-5 h-5 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center;
-    animation: pop 0.3s ease-out;
-    box-shadow: 0 2px 6px hsl(45 95% 55% / 0.4);
-  }
-
-  .hero-section {
-    background: var(--gradient-hero);
-  }
-
-  .floating-cart {
-    box-shadow: 0 -4px 20px hsl(280 30% 20% / 0.1), 0 8px 32px hsl(280 30% 20% / 0.2);
-  }
-
-  .veg-badge {
-    @apply w-4 h-4 border-2 flex items-center justify-center rounded text-[10px] flex-shrink-0;
-  }
-
-  .veg-badge-veg {
-    @apply border-emerald-600 text-emerald-600 bg-emerald-50;
-  }
-
-  .veg-badge-nonveg {
-    @apply border-red-600 text-red-600 bg-red-50;
-  }
-
-  .section-header {
-    @apply font-display text-2xl md:text-3xl font-semibold text-foreground flex items-center gap-3;
-    letter-spacing: -0.02em;
-  }
+    .cafe-container {
+        @apply max-w-7xl mx-auto px-4;
+    }
+    .menu-card {
+        @apply bg-card rounded-2xl p-5 transition-all duration-300 border border-border/50;
+        box-shadow: 0 1px 3px hsl(280 30% 20% / 0.04), 0 4px 12px hsl(280 30% 20% / 0.06);
+        background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(280 10% 98%) 100%);
+    }
+    .menu-card:hover {
+        box-shadow: 0 4px 12px hsl(280 30% 20% / 0.08), 0 12px 32px hsl(280 30% 20% / 0.12);
+        transform: translateY(-4px);
+        border-color: hsl(280 45% 75% / 0.3);
+    }
+    .category-pill {
+        @apply px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border-2 border-transparent;
+    }
+    .category-pill-active {
+        @apply bg-primary text-primary-foreground border-primary;
+        box-shadow: 0 4px 14px hsl(280 45% 35% / 0.35);
+    }
+    .category-pill-inactive {
+        @apply bg-secondary/60 text-secondary-foreground hover: bg-secondary border-secondary/30;
+    }
+    .category-pill-inactive:hover {
+        box-shadow: 0 2px 8px hsl(45 90% 65% / 0.25);
+        transform: translateY(-1px);
+    }
+    .cart-badge {
+        @apply absolute -top-2 -right-2 w-5 h-5 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center;
+        animation: pop 0.3s ease-out;
+        box-shadow: 0 2px 6px hsl(45 95% 55% / 0.4);
+    }
+    .hero-section {
+        background: var(--gradient-hero);
+    }
+    .floating-cart {
+        box-shadow: 0 -4px 20px hsl(280 30% 20% / 0.1), 0 8px 32px hsl(280 30% 20% / 0.2);
+    }
+    .veg-badge {
+        @apply w-4 h-4 border-2 flex items-center justify-center rounded text-[10px] flex-shrink-0;
+    }
+    .veg-badge-veg {
+        @apply border-emerald-600 text-emerald-600 bg-emerald-50;
+    }
+    .veg-badge-nonveg {
+        @apply border-red-600 text-red-600 bg-red-50;
+    }
+    .section-header {
+        @apply font-display text-2xl md: text-3xl font-semibold text-foreground flex items-center gap-3;
+        letter-spacing: -0.02em;
+    }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.4s ease-out;
-  }
-
-  .animate-pop {
-    animation: pop 0.3s ease-out;
-  }
+    .text-balance {
+        text-wrap: balance;
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+    .animate-slide-up {
+        animation: slideUp 0.4s ease-out;
+    }
+    .animate-pop {
+        animation: pop 0.3s ease-out;
+    }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes pop {
-  0% {
-    transform: scale(0);
-  }
-  70% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+    0% {
+        transform: scale(0);
+    }
+    70% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
+
 /* Hide Lovable badge */
+
 #lovable-badge {
-  display: none !important;
+    display: none !important;
 }

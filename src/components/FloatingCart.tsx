@@ -58,7 +58,9 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onViewCart }) => {
 
             <div className='leading-tight'>
               <span className='font-semibold block text-sm'>View Cart</span>
-              <span className='text-xs opacity-80'>{totalItems} items added</span>
+              <span className='text-xs opacity-80'>
+                {totalItems} items added
+              </span>
             </div>
           </div>
 
