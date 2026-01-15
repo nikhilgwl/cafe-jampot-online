@@ -14,7 +14,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({ categoryId, items, searchQuer
   if (items.length === 0) return null;
 
   return (
-    <section className="py-4 px-4">
+    <section id={`section-${categoryId}`} className="py-4 px-4 scroll-mt-36">
       <div className="cafe-container">
         <h2 className="font-display text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <span>{category?.icon}</span>
