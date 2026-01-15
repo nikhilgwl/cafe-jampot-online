@@ -12,19 +12,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 }) => {
   const handleCategoryClick = (categoryId: string) => {
     onCategoryChange(categoryId);
-    
-    // Smooth scroll to section
-    const sectionElement = document.getElementById(`section-${categoryId}`);
-    if (sectionElement) {
-      const headerOffset = 140; // Account for sticky headers
-      const elementPosition = sectionElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
   };
 
   return (

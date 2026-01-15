@@ -17,6 +17,7 @@ export interface MenuCategory {
 }
 
 export const categories: MenuCategory[] = [
+  { id: "all", name: "All Items", icon: "📋" },
   { id: "quick-bites", name: "Quick Bites", icon: "🍟" },
   { id: "sandwiches", name: "Sandwiches", icon: "🥪" },
   { id: "pasta", name: "Pasta", icon: "🍝" },
