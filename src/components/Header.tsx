@@ -1,7 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import jampotLogo from '@/assets/cafe-jampot-logo.png';
 
 const Header: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    const fetchDeliveryStatus = async () => {
+      const { data } = await supabase
+        .from('delivery_settings')
+        .select('is_open')
+        .limit(1)
+        .maybeSingle();
+      
+      if (data) {
+        setIsOpen(data.is_open);
+      }
+    };
+
+    fetchDeliveryStatus();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('delivery-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'delivery_settings',
+        },
+        (payload) => {
+          setIsOpen((payload.new as { is_open: boolean }).is_open);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <header className="bg-primary text-primary-foreground py-3 px-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -22,10 +61,12 @@ const Header: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-500/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium shadow-md">
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-          <span className="text-white hidden sm:inline">Open for Delivery</span>
-          <span className="text-white sm:hidden">Open</span>
+        <div className={`flex items-center gap-2 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium shadow-md ${
+          isOpen ? 'bg-emerald-500/90' : 'bg-red-500/90'
+        }`}>
+          <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-white animate-pulse' : 'bg-white/70'}`}></span>
+          <span className="text-white hidden sm:inline">{isOpen ? 'Open for Delivery' : 'Closed for Delivery'}</span>
+          <span className="text-white sm:hidden">{isOpen ? 'Open' : 'Closed'}</span>
         </div>
       </div>
     </header>
