@@ -29,15 +29,11 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     const checkRoleAndRedirect = async (userId: string) => {
-      const { data: hasStaffRole } = await supabase.rpc('has_role', {
-        _user_id: userId,
-        _role: 'staff'
-      });
-      const { data: hasAdminRole } = await supabase.rpc('has_role', {
-        _user_id: userId,
-        _role: 'admin'
-      });
-      
+      const [{ data: hasStaffRole }, { data: hasAdminRole }] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: userId, _role: "staff" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      ]);
+
       if (!hasStaffRole && !hasAdminRole) {
         toast({
           title: "Access Denied",
@@ -50,15 +46,15 @@ const Admin: React.FC = () => {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!session) {
-          navigate("/auth");
-        } else {
-          setTimeout(() => checkRoleAndRedirect(session.user.id), 0);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setTimeout(() => checkRoleAndRedirect(session.user.id), 0);
       }
-    );
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -69,7 +65,7 @@ const Admin: React.FC = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const loadData = async () => {
     setLoading(true);
