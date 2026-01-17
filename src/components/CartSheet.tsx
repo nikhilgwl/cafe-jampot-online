@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import {
-  X,
   Plus,
   Minus,
   Trash2,
   ShoppingBag,
-  Phone,
-  User,
   Building2,
   Send,
 } from "lucide-react";
@@ -21,18 +18,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-
-interface CustomerDetails {
-  name: string;
-  mobile: string;
-  hostel: string;
-  customHostel?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 interface CartSheetProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const HOSTELS = [
+  "Fr. Enright",
+  "Nilima",
+  "MTR",
+  "St. Thomas",
+  "NH (Girls)",
+  "NH (Boys)",
+  "Other",
+];
 
 const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
   const {
@@ -43,67 +44,74 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
     totalPrice,
   } = useCart();
   const { toast } = useToast();
-  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
-    name: "",
-    mobile: "",
-    hostel: "",
-    customHostel: "",
-  });
+  const [hostel, setHostel] = useState("");
+  const [customHostel, setCustomHostel] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitOrder = () => {
-    if (!customerDetails.name.trim()) {
-      toast({ title: "Please enter your name", variant: "destructive" });
-      return;
-    }
-    if (!customerDetails.mobile.trim() || customerDetails.mobile.length < 10) {
-      toast({
-        title: "Please enter a valid mobile number",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (
-      !customerDetails.hostel.trim() &&
-      !customerDetails.customHostel?.trim()
-    ) {
-      toast({ title: "Please enter your hostel name", variant: "destructive" });
+  const handleSubmitOrder = async () => {
+    const hostelName = hostel === "Other" ? customHostel : hostel;
+    
+    if (!hostelName.trim()) {
+      toast({ title: "Please select your hostel", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
 
-    // Format order for WhatsApp
-    const orderItems = items
-      .map(
-        (item) =>
-          `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
-      )
-      .join("\n");
+    try {
+      // Save order to database
+      const orderItems = items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        isVeg: item.isVeg,
+      }));
 
-    // Use customHostel if "Other" is selected, otherwise use the selected hostel
-    const hostelName =
-      customerDetails.hostel === "Other"
-        ? customerDetails.customHostel || ""
-        : customerDetails.hostel || "";
+      const { error } = await supabase.from("orders").insert({
+        hostel_name: hostelName,
+        items: orderItems,
+        total_amount: totalPrice,
+        status: "pending",
+      });
 
-    const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${orderItems}\n\n💰 *Total: ₹${totalPrice}*`;
+      if (error) {
+        console.error("Error saving order:", error);
+      }
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
+      // Format order for WhatsApp
+      const orderText = items
+        .map(
+          (item) =>
+            `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
+        )
+        .join("\n");
 
-    window.open(whatsappUrl, "_blank");
+      const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Hostel:* ${hostelName}\n\n*Order:*\n${orderText}\n\n💰 *Total: ₹${totalPrice}*`;
 
-    toast({
-      title: "Order sent! 🎉",
-      description:
-        "Your order has been sent via WhatsApp. Mr. Ajay will contact you soon.",
-    });
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
 
-    clearCart();
-    setCustomerDetails({ name: "", mobile: "", hostel: "", customHostel: "" });
+      window.open(whatsappUrl, "_blank");
+
+      toast({
+        title: "Order sent! 🎉",
+        description: "Your order has been sent via WhatsApp.",
+      });
+
+      clearCart();
+      setHostel("");
+      setCustomHostel("");
+      onClose();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to place order. Please try again.",
+        variant: "destructive",
+      });
+    }
+
     setIsSubmitting(false);
-    onClose();
   };
 
   return (
@@ -186,105 +194,37 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
                 </div>
               ))}
 
-              {/* Customer Details Form */}
+              {/* Delivery Details */}
               <div className='pt-4 border-t border-border space-y-4'>
                 <h3 className='font-display text-lg font-semibold'>
                   Delivery Details
                 </h3>
 
-                <div className='space-y-3'>
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='name'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <User className='w-4 h-4' />
-                      Your Name
-                    </Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='hostel' className='flex items-center gap-2 text-sm'>
+                    <Building2 className='w-4 h-4' />
+                    Hostel Name
+                  </Label>
+                  <select
+                    id='hostel'
+                    value={hostel}
+                    onChange={(e) => setHostel(e.target.value)}
+                    className='w-full rounded-md bg-secondary border border-border px-3 py-2 text-sm'
+                  >
+                    <option value=''>Select Hostel</option>
+                    {HOSTELS.map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+
+                  {hostel === "Other" && (
                     <Input
-                      id='name'
-                      placeholder='Enter your name'
-                      value={customerDetails.name}
-                      onChange={(e) =>
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
+                      placeholder='Enter hostel name'
+                      value={customHostel}
+                      onChange={(e) => setCustomHostel(e.target.value)}
                       className='bg-secondary border-border'
                     />
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='mobile'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <Phone className='w-4 h-4' />
-                      Mobile Number
-                    </Label>
-                    <Input
-                      id='mobile'
-                      type='tel'
-                      placeholder='Enter your mobile number'
-                      value={customerDetails.mobile}
-                      onChange={(e) =>
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          mobile: e.target.value,
-                        }))
-                      }
-                      className='bg-secondary border-border'
-                    />
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='hostel'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <Building2 className='w-4 h-4' />
-                      Hostel Name
-                    </Label>
-
-                    {/* Hostel Dropdown */}
-                    <select
-                      id='hostel'
-                      value={customerDetails.hostel}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          hostel: value,
-                        }));
-                      }}
-                      className='w-full rounded-md bg-secondary border border-border px-3 py-2 text-sm'
-                    >
-                      <option value=''>Select Hostel</option>
-                      <option value='Fr. Enright'>Fr. Enright</option>
-                      <option value='Nilima'>Nilima</option>
-                      <option value='MTR'>MTR</option>
-                      <option value='St. Thomas'>St. Thomas</option>
-                      <option value='NH (Girls)'>NH (Girls)</option>
-                      <option value='NH (Boys)'>NH (Boys)</option>
-                      <option value='Other'>Other</option>
-                    </select>
-
-                    {/* Show only if Other is selected */}
-                    {customerDetails.hostel === "Other" && (
-                      <Input
-                        placeholder='Enter hostel name'
-                        value={customerDetails.customHostel || ""}
-                        onChange={(e) =>
-                          setCustomerDetails((prev) => ({
-                            ...prev,
-                            customHostel: e.target.value,
-                          }))
-                        }
-                        className='bg-secondary border-border'
-                      />
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -304,11 +244,11 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
                 className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg font-semibold'
               >
                 <Send className='w-5 h-5 mr-2' />
-                Place Order via WhatsApp
+                {isSubmitting ? "Sending..." : "Place Order via WhatsApp"}
               </Button>
 
               <p className='text-xs text-muted-foreground text-center'>
-                Your order will be sent to Mr. Ajay via WhatsApp
+                Your order will be sent to Cafe Jampot via WhatsApp
               </p>
             </div>
           </>
