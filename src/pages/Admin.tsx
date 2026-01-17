@@ -28,10 +28,34 @@ const Admin: React.FC = () => {
   const [updatingStock, setUpdatingStock] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkRoleAndRedirect = async (userId: string) => {
+      const { data: hasStaffRole } = await supabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'staff'
+      });
+      const { data: hasAdminRole } = await supabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin'
+      });
+      
+      if (!hasStaffRole && !hasAdminRole) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access this page.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      } else {
+        loadData();
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!session) {
           navigate("/auth");
+        } else {
+          setTimeout(() => checkRoleAndRedirect(session.user.id), 0);
         }
       }
     );
@@ -40,12 +64,12 @@ const Admin: React.FC = () => {
       if (!session) {
         navigate("/auth");
       } else {
-        loadData();
+        checkRoleAndRedirect(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const loadData = async () => {
     setLoading(true);

@@ -46,9 +46,10 @@ const Auth: React.FC = () => {
     });
 
     if (error) {
+      console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     } else {
@@ -74,9 +75,10 @@ const Auth: React.FC = () => {
     });
 
     if (error) {
+      console.error('Signup error:', error);
       toast({
         title: "Sign Up Failed",
-        description: error.message,
+        description: "Unable to create account. Please try again or contact support.",
         variant: "destructive",
       });
     } else {
