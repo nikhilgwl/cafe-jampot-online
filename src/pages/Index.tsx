@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import CategoryFilter from "@/components/CategoryFilter";
@@ -8,16 +8,68 @@ import VegFilter, { VegFilterType } from "@/components/VegFilter";
 import FloatingCart from "@/components/FloatingCart";
 import CartSheet from "@/components/CartSheet";
 import Footer from "@/components/Footer";
-import { categories, getItemsByCategory, menuItems } from "@/data/menuData";
+import { categories, getItemsByCategory, menuItems, MenuItem } from "@/data/menuData";
 import { fuzzyMatch } from "@/lib/fuzzySearch";
+import { supabase } from "@/integrations/supabase/client";
 
 const IndexContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [vegFilter, setVegFilter] = useState<VegFilterType>("all");
+  const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>({});
 
-  const applyVegFilter = (items: typeof menuItems) => {
+  // Fetch stock status from database
+  useEffect(() => {
+    const fetchStockStatus = async () => {
+      const { data } = await supabase
+        .from("stock_status")
+        .select("item_id, is_available");
+
+      if (data) {
+        const status: { [key: string]: boolean } = {};
+        data.forEach((item: { item_id: string; is_available: boolean }) => {
+          status[item.item_id] = item.is_available;
+        });
+        setStockStatus(status);
+      }
+    };
+
+    fetchStockStatus();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel("stock-status")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "stock_status",
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            const newData = payload.new as { item_id: string; is_available: boolean };
+            setStockStatus((prev) => ({
+              ...prev,
+              [newData.item_id]: newData.is_available,
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Filter out out-of-stock items
+  const availableItems = useMemo(() => {
+    return menuItems.filter((item) => stockStatus[item.id] !== false);
+  }, [stockStatus]);
+
+  const applyVegFilter = (items: MenuItem[]) => {
     if (vegFilter === "all") return items;
     if (vegFilter === "veg") return items.filter((item) => item.isVeg);
     return items.filter((item) => !item.isVeg);
@@ -25,37 +77,38 @@ const IndexContent: React.FC = () => {
 
   // Pre-compute and cache all category items with veg filter applied
   const cachedCategoryItems = useMemo(() => {
-    const cache: { [key: string]: typeof menuItems } = {};
+    const cache: { [key: string]: MenuItem[] } = {};
     categories.forEach((category) => {
       if (category.id !== "all") {
-        cache[category.id] = applyVegFilter(getItemsByCategory(category.id));
+        const categoryItems = availableItems.filter((item) => item.category === category.id);
+        cache[category.id] = applyVegFilter(categoryItems);
       }
     });
     return cache;
-  }, [vegFilter]);
+  }, [vegFilter, availableItems]);
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     let items =
       selectedCategory === "all"
-        ? menuItems
-        : getItemsByCategory(selectedCategory);
+        ? availableItems
+        : availableItems.filter((item) => item.category === selectedCategory);
 
     if (query) {
       items = items.filter((item) => fuzzyMatch(item.name, query));
     }
 
     return applyVegFilter(items);
-  }, [searchQuery, selectedCategory, vegFilter]);
+  }, [searchQuery, selectedCategory, vegFilter, availableItems]);
 
   const allCategoryItems = useMemo(() => {
     if (!searchQuery.trim()) return null;
 
     // When searching, group results by category
-    const grouped: { [key: string]: typeof menuItems } = {};
+    const grouped: { [key: string]: MenuItem[] } = {};
     const query = searchQuery.toLowerCase().trim();
 
-    menuItems.forEach((item) => {
+    availableItems.forEach((item) => {
       if (fuzzyMatch(item.name, query)) {
         if (!grouped[item.category]) {
           grouped[item.category] = [];
@@ -73,11 +126,10 @@ const IndexContent: React.FC = () => {
     });
 
     return grouped;
-  }, [searchQuery, vegFilter]);
+  }, [searchQuery, vegFilter, availableItems]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    // When search is cleared, keep the selected category (already default behavior)
   };
 
   const showAllResults =
