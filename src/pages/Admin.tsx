@@ -288,7 +288,7 @@ const Admin: React.FC = () => {
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Dashboard
             </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="border-red-200 bg-red-50/50 text-red-600 hover:bg-red-100/70">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
