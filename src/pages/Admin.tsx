@@ -7,14 +7,28 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Store, Package, LayoutDashboard, Search, Loader2 } from "lucide-react";
+import { LogOut, Store, Package, LayoutDashboard, Search, Loader2, Users, UserCheck, Shield, Trash2 } from "lucide-react";
 import { menuItems, categories } from "@/data/menuData";
 import jampotLogo from "@/assets/cafe-jampot-logo.png";
 
 interface StockStatus {
   item_id: string;
   is_available: boolean;
+}
+
+interface PendingUser {
+  user_id: string;
+  email: string;
+  created_at: string;
+}
+
+interface UserWithRole {
+  user_id: string;
+  email: string;
+  role: "admin" | "staff" | null;
+  created_at: string;
 }
 
 const Admin: React.FC = () => {
@@ -26,6 +40,11 @@ const Admin: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingDelivery, setUpdatingDelivery] = useState(false);
   const [updatingStock, setUpdatingStock] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [usersWithRoles, setUsersWithRoles] = useState<UserWithRole[]>([]);
+  const [approvingUser, setApprovingUser] = useState<string | null>(null);
+  const [removingRole, setRemovingRole] = useState<string | null>(null);
 
   useEffect(() => {
     const checkRoleAndRedirect = async (userId: string) => {
@@ -42,7 +61,8 @@ const Admin: React.FC = () => {
         });
         navigate("/auth");
       } else {
-        loadData();
+        setIsAdmin(hasAdminRole === true);
+        loadData(hasAdminRole === true);
       }
     };
 
@@ -67,7 +87,7 @@ const Admin: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const loadData = async () => {
+  const loadData = async (adminAccess: boolean) => {
     setLoading(true);
     try {
       // Load delivery settings
@@ -93,10 +113,72 @@ const Admin: React.FC = () => {
         });
         setStockStatus(status);
       }
+
+      // Load user management data if admin
+      if (adminAccess) {
+        await loadUserData();
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     }
     setLoading(false);
+  };
+
+  const loadUserData = async () => {
+    const [{ data: pending }, { data: allUsers }] = await Promise.all([
+      supabase.rpc("get_pending_users"),
+      supabase.rpc("get_all_users_with_roles"),
+    ]);
+    
+    if (pending) setPendingUsers(pending as PendingUser[]);
+    if (allUsers) setUsersWithRoles(allUsers as UserWithRole[]);
+  };
+
+  const handleApproveUser = async (userId: string, role: "admin" | "staff") => {
+    setApprovingUser(userId);
+    const { error } = await supabase
+      .from("user_roles")
+      .insert({ user_id: userId, role });
+
+    if (error) {
+      console.error("Error approving user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve user. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "User Approved",
+        description: `User has been granted ${role} access.`,
+      });
+      await loadUserData();
+    }
+    setApprovingUser(null);
+  };
+
+  const handleRemoveRole = async (userId: string) => {
+    setRemovingRole(userId);
+    const { error } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error removing role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove user role. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Role Removed",
+        description: "User's access has been revoked.",
+      });
+      await loadUserData();
+    }
+    setRemovingRole(null);
   };
 
   const handleDeliveryToggle = async (checked: boolean) => {
@@ -324,6 +406,118 @@ const Admin: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* User Management Card - Admin Only */}
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                User Management
+              </CardTitle>
+              <CardDescription>
+                Approve pending registrations and manage user roles
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Pending Users */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <UserCheck className="w-4 h-4" />
+                  Pending Approvals ({pendingUsers.length})
+                </h3>
+                {pendingUsers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">No pending registrations</p>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingUsers.map((user) => (
+                      <div
+                        key={user.user_id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/20"
+                      >
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-sm">{user.email}</span>
+                          <span className="text-xs text-muted-foreground">
+                            Registered: {new Date(user.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {approvingUser === user.user_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleApproveUser(user.user_id, "staff")}
+                              >
+                                <UserCheck className="w-4 h-4 mr-1" />
+                                Staff
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveUser(user.user_id, "admin")}
+                              >
+                                <Shield className="w-4 h-4 mr-1" />
+                                Admin
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Current Users with Roles */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Active Users
+                </h3>
+                {usersWithRoles.filter(u => u.role).length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">No active users with roles</p>
+                ) : (
+                  <div className="space-y-2">
+                    {usersWithRoles
+                      .filter((u) => u.role)
+                      .map((user) => (
+                        <div
+                          key={user.user_id}
+                          className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                        >
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-sm">{user.email}</span>
+                            <Badge
+                              variant={user.role === "admin" ? "default" : "secondary"}
+                              className="w-fit text-xs"
+                            >
+                              {user.role?.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {removingRole === user.user_id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleRemoveRole(user.user_id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Links */}
         <div className="flex gap-4 justify-center pb-8">
