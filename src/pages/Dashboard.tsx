@@ -31,6 +31,7 @@ interface Order {
   total_amount: number;
   status: string;
   created_at: string;
+  user_id: string | null;
 }
 
 const HOSTELS = ["GH-1", "GH-2", "GH-3", "GH-4", "GH-5", "GH-6", "GH-7", "GH-8", "GH-9", "GH-10", "GH-11", "GH-12", "Faculty Housing", "Other"];
