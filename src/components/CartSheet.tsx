@@ -59,6 +59,9 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
+      // Get current user (if authenticated)
+      const { data: { user } } = await supabase.auth.getUser();
+
       // Save order to database
       const orderItems = items.map(item => ({
         id: item.id,
@@ -73,6 +76,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
         items: orderItems,
         total_amount: totalPrice,
         status: "pending",
+        user_id: user?.id || null,
       });
 
       if (error) {
