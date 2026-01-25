@@ -8,7 +8,13 @@ import VegFilter, { VegFilterType } from "@/components/VegFilter";
 import FloatingCart from "@/components/FloatingCart";
 import CartSheet from "@/components/CartSheet";
 import Footer from "@/components/Footer";
-import { categories, getItemsByCategory, menuItems, MenuItem } from "@/data/menuData";
+import deliveryMan from "@/assets/deliveryMan.png";
+import {
+  categories,
+  getItemsByCategory,
+  menuItems,
+  MenuItem,
+} from "@/data/menuData";
 import { fuzzyMatch } from "@/lib/fuzzySearch";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,7 +23,36 @@ const IndexContent: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [vegFilter, setVegFilter] = useState<VegFilterType>("all");
-  const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>({});
+  const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  const [isDeliveryOpen, setIsDeliveryOpen] = useState(true);
+
+  // Fetch delivery status
+  useEffect(() => {
+    const fetchDeliveryStatus = async () => {
+      const { data } = await supabase
+        .from("delivery_settings")
+        .select("is_open")
+        .limit(1)
+        .maybeSingle();
+      if (data) setIsDeliveryOpen(data.is_open);
+    };
+    fetchDeliveryStatus();
+    const channel = supabase
+      .channel("delivery-status")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "delivery_settings" },
+        (payload) => {
+          setIsDeliveryOpen((payload.new as { is_open: boolean }).is_open);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Fetch stock status from database
   useEffect(() => {
@@ -48,8 +83,14 @@ const IndexContent: React.FC = () => {
           table: "stock_status",
         },
         (payload) => {
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            const newData = payload.new as { item_id: string; is_available: boolean };
+          if (
+            payload.eventType === "INSERT" ||
+            payload.eventType === "UPDATE"
+          ) {
+            const newData = payload.new as {
+              item_id: string;
+              is_available: boolean;
+            };
             setStockStatus((prev) => ({
               ...prev,
               [newData.item_id]: newData.is_available,
@@ -80,7 +121,9 @@ const IndexContent: React.FC = () => {
     const cache: { [key: string]: MenuItem[] } = {};
     categories.forEach((category) => {
       if (category.id !== "all") {
-        const categoryItems = availableItems.filter((item) => item.category === category.id);
+        const categoryItems = availableItems.filter(
+          (item) => item.category === category.id
+        );
         cache[category.id] = applyVegFilter(categoryItems);
       }
     });
@@ -137,31 +180,45 @@ const IndexContent: React.FC = () => {
 
   return (
     <div className='min-h-screen bg-background flex flex-col'>
-      <Header />
+      <Header isOpen={isDeliveryOpen} />
 
-      {/* Search Bar and Veg Filter */}
-      <div className='sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3'>
-        <div className='max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center'>
-          <div className='flex-1 w-full'>
-            <SearchBar
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder='Search menu items...'
-            />
+      {isDeliveryOpen && (
+        <>
+          {/* Search Bar and Veg Filter */}
+          <div className='sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3'>
+            <div className='max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center'>
+              <div className='flex-1 w-full'>
+                <SearchBar
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder='Search menu items...'
+                />
+              </div>
+              <VegFilter value={vegFilter} onChange={setVegFilter} />
+            </div>
           </div>
-          <VegFilter value={vegFilter} onChange={setVegFilter} />
-        </div>
-      </div>
 
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onCategoryChange={(cat) => {
-          setSelectedCategory(cat);
-        }}
-      />
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onCategoryChange={(cat) => {
+              setSelectedCategory(cat);
+            }}
+          />
+        </>
+      )}
 
       <main className='flex-1 pb-24'>
-        {showAllResults && allCategoryItems ? (
+        {!isDeliveryOpen ? (
+          <div className='flex-1 flex flex-col items-center justify-center text-center px-6 py-16 min-h-[50vh]'>
+            <p className='font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed'>
+              Your favorite cafe is currently closed. Please drop by later to
+              order.
+            </p>
+            <p className='mt-6 text-lg text-muted-foreground'>
+              Bon Appétit Café Jampot ❤️
+            </p>
+          </div>
+        ) : showAllResults && allCategoryItems ? (
           // Show grouped results when searching
           Object.entries(allCategoryItems).map(([categoryId, items]) => (
             <MenuSection
@@ -205,21 +262,26 @@ const IndexContent: React.FC = () => {
           />
         )}
 
-        {searchQuery && filteredItems.length === 0 && !showAllResults && (
-          <div className='text-center py-12 px-4'>
-            <p className='text-muted-foreground'>
-              No items found for "{searchQuery}"
-              {vegFilter !== "all" &&
-                ` in ${
-                  vegFilter === "veg" ? "vegetarian" : "non-vegetarian"
-                } options`}
-            </p>
-          </div>
-        )}
+        {isDeliveryOpen &&
+          searchQuery &&
+          filteredItems.length === 0 &&
+          !showAllResults && (
+            <div className='text-center py-12 px-4'>
+              <p className='text-muted-foreground'>
+                No items found for "{searchQuery}"
+                {vegFilter !== "all" &&
+                  ` in ${
+                    vegFilter === "veg" ? "vegetarian" : "non-vegetarian"
+                  } options`}
+              </p>
+            </div>
+          )}
       </main>
 
       <Footer />
-      <FloatingCart onViewCart={() => setIsCartOpen(true)} />
+      {isDeliveryOpen && (
+        <FloatingCart onViewCart={() => setIsCartOpen(true)} />
+      )}
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );
