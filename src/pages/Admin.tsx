@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, Store, Package, LayoutDashboard, Search, Loader2, Users, UserCheck, Shield, Trash2 } from "lucide-react";
-import { menuItems, categories } from "@/data/menuData";
+import { categories, MenuItem } from "@/data/menuData";
+import { useAllMenuItems } from "@/hooks/useMenuItems";
 import jampotLogo from "@/assets/cafe-jampot-logo.png";
 
 interface StockStatus {
@@ -45,6 +46,9 @@ const Admin: React.FC = () => {
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithRole[]>([]);
   const [approvingUser, setApprovingUser] = useState<string | null>(null);
   const [removingRole, setRemovingRole] = useState<string | null>(null);
+
+  // Fetch menu items from database
+  const { items: menuItems, loading: menuLoading } = useAllMenuItems();
 
   useEffect(() => {
     const checkRoleAndRedirect = async (userId: string) => {
@@ -247,17 +251,17 @@ const Admin: React.FC = () => {
     navigate("/auth");
   };
 
-  const filteredItems = menuItems.filter((item) =>
+  const filteredItems = menuItems.filter((item: MenuItem) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const groupedItems = filteredItems.reduce((acc, item) => {
+  const groupedItems = filteredItems.reduce((acc, item: MenuItem) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
     acc[item.category].push(item);
     return acc;
-  }, {} as { [key: string]: typeof menuItems });
+  }, {} as { [key: string]: MenuItem[] });
 
   if (loading) {
     return (

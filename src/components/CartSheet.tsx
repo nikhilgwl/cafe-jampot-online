@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  X,
   Plus,
   Minus,
   Trash2,
@@ -9,7 +8,10 @@ import {
   User,
   Building2,
   Send,
+  Loader2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import {
   Sheet,
   SheetContent,
@@ -50,8 +52,22 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
     customHostel: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
 
-  const handleSubmitOrder = () => {
+  // Check auth status
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSubmitOrder = async () => {
     if (!customerDetails.name.trim()) {
       toast({ title: "Please enter your name", variant: "destructive" });
       return;
@@ -71,15 +87,17 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    setIsSubmitting(true);
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Please log in to place an order",
+        description: "You need to be logged in to place orders.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Format order for WhatsApp
-    const orderItems = items
-      .map(
-        (item) =>
-          `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
-      )
-      .join("\n");
+    setIsSubmitting(true);
 
     // Use customHostel if "Other" is selected, otherwise use the selected hostel
     const hostelName =
@@ -87,23 +105,70 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
         ? customerDetails.customHostel || ""
         : customerDetails.hostel || "";
 
-    const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${orderItems}\n\n💰 *Total: ₹${totalPrice}*`;
+    // Prepare order data for database
+    const orderItems = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      isVeg: item.isVeg,
+    }));
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
+    try {
+      // Save order to database first
+      const { error: dbError } = await supabase.from("orders").insert({
+        user_id: user.id,
+        items: orderItems,
+        total_amount: totalPrice,
+        hostel_name: hostelName,
+        status: "pending",
+      });
 
-    window.open(whatsappUrl, "_blank");
+      if (dbError) {
+        console.error("Failed to save order:", dbError);
+        toast({
+          title: "Failed to place order",
+          description: "Please try again or contact support.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-    toast({
-      title: "Order sent! 🎉",
-      description:
-        "Your order has been sent via WhatsApp. Mr. Ajay will contact you soon.",
-    });
+      // Format order for WhatsApp
+      const whatsappOrderItems = items
+        .map(
+          (item) =>
+            `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
+        )
+        .join("\n");
 
-    clearCart();
-    setCustomerDetails({ name: "", mobile: "", hostel: "", customHostel: "" });
-    setIsSubmitting(false);
-    onClose();
+      const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${whatsappOrderItems}\n\n💰 *Total: ₹${totalPrice}*`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
+
+      window.open(whatsappUrl, "_blank");
+
+      toast({
+        title: "Order placed! 🎉",
+        description:
+          "Your order has been saved and sent via WhatsApp. Mr. Ajay will contact you soon.",
+      });
+
+      clearCart();
+      setCustomerDetails({ name: "", mobile: "", hostel: "", customHostel: "" });
+      onClose();
+    } catch (error) {
+      console.error("Order error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -300,11 +365,15 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
 
               <Button
                 onClick={handleSubmitOrder}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !user}
                 className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg font-semibold'
               >
-                <Send className='w-5 h-5 mr-2' />
-                Place Order via WhatsApp
+                {isSubmitting ? (
+                  <Loader2 className='w-5 h-5 mr-2 animate-spin' />
+                ) : (
+                  <Send className='w-5 h-5 mr-2' />
+                )}
+                {!user ? "Login to Place Order" : "Place Order via WhatsApp"}
               </Button>
 
               <p className='text-xs text-muted-foreground text-center'>
