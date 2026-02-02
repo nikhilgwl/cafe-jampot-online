@@ -17,29 +17,9 @@ import { fuzzyMatch } from "@/lib/fuzzySearch";
 import { supabase } from "@/integrations/supabase/client";
 
 /* =========================================================
-   Cafe Timing Rule
-   Sunday: Closed
-   Mon–Sat: 6:45 PM → 2:00 AM
+   Delivery is controlled entirely by admin toggle in database.
+   No time-based restrictions - admin has full control.
 ========================================================= */
-function isWithinDeliveryWindow(): boolean {
-  const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
-
-  const START = 18 * 60 + 45; // 6:45 PM
-  const END = 2 * 60;        // 2:00 AM
-
-  // ❌ Sunday closed
-  if (day === 0) return false;
-
-  // ✅ Evening window
-  if (minutesNow >= START) return true;
-
-  // ✅ Early morning window (not Monday morning)
-  if (minutesNow < END && day !== 1) return true;
-
-  return false;
-}
 
 const IndexContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -96,11 +76,10 @@ const IndexContent: React.FC = () => {
     };
   }, []);
 
-  /* ---------------- Recompute final delivery ---------------- */
+  /* ---------------- Use admin toggle directly ---------------- */
   useEffect(() => {
     if (dbDeliveryOpen === null) return;
-    const allowed = isWithinDeliveryWindow();
-    setIsDeliveryOpen(dbDeliveryOpen && allowed);
+    setIsDeliveryOpen(dbDeliveryOpen);
   }, [dbDeliveryOpen]);
 
   /* ---------------- Fetch stock status ---------------- */
