@@ -230,7 +230,46 @@ const IndexContent: React.FC = () => {
       <Header isOpen={isDeliveryOpen} />
       
       {/* Ad Carousel - only show when delivery is open */}
-      {!isLoading && isDeliveryOpen && <AdCarousel />}
+      {!isLoading && isDeliveryOpen && (
+        <AdCarousel
+          onInternalLink={(link) => {
+            console.log('onInternalLink called with:', link);
+            // Handle internal menu item links
+            // Format: #menu-item:oreo-shake or #oreo-shake
+            const menuItemName = link.replace('#menu-item:', '').replace('#', '');
+            console.log('Menu item name:', menuItemName);
+            
+            // For Oreo Shake, switch to cold-beverages category and search
+            if (menuItemName.toLowerCase().includes('oreo')) {
+              console.log('Navigating to Oreo Shake');
+              setSelectedCategory('cold-beverages');
+              setSearchQuery('Oreo Shake');
+              
+              // Scroll to the cold beverages section after a short delay
+              setTimeout(() => {
+                const section = document.getElementById('section-cold-beverages');
+                if (section) {
+                  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                  console.warn('Section cold-beverages not found');
+                }
+              }, 300);
+            } else if (link.startsWith('#category:')) {
+              // Handle category links: #category:cold-beverages
+              const categoryId = link.replace('#category:', '');
+              setSelectedCategory(categoryId);
+              setSearchQuery('');
+              
+              setTimeout(() => {
+                const section = document.getElementById(`section-${categoryId}`);
+                if (section) {
+                  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 300);
+            }
+          }}
+        />
+      )}
 
       {!isLoading && isDeliveryOpen && (
         <>
