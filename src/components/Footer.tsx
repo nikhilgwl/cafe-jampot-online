@@ -1,7 +1,6 @@
 import React from 'react';
 import { Instagram, Phone, MapPin } from 'lucide-react';
 import jampotLogo from '@/assets/cafe-jampot-logo.png';
-import FeedbackForm from './FeedbackForm';
 
 const Footer: React.FC = () => {
   return (
@@ -40,7 +39,6 @@ const Footer: React.FC = () => {
               <MapPin className="w-3.5 h-3.5" />
               XLRI Campus
             </span>
-            <FeedbackForm />
           </div>
 
           <p className="text-primary-foreground/50 text-xs">

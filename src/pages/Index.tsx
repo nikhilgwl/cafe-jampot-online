@@ -8,18 +8,39 @@ import VegFilter, { VegFilterType } from "@/components/VegFilter";
 import FloatingCart from "@/components/FloatingCart";
 import CartSheet from "@/components/CartSheet";
 import Footer from "@/components/Footer";
-import AdCarousel from "@/components/AdCarousel";
-import { categories, MenuItem } from "@/data/menuData";
-import { useMenuItems } from "@/hooks/useMenuItems";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  categories,
+  menuItems,
+  MenuItem,
+} from "@/data/menuData";
 
 import { fuzzyMatch } from "@/lib/fuzzySearch";
 import { supabase } from "@/integrations/supabase/client";
 
 /* =========================================================
-   Delivery is controlled entirely by admin toggle in database.
-   No time-based restrictions - admin has full control.
+   Cafe Timing Rule
+   Sunday: Closed
+   Mon–Sat: 6:45 PM → 2:00 AM
 ========================================================= */
+function isWithinDeliveryWindow(): boolean {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Sunday
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+  const START = 18 * 60 + 45; // 6:45 PM
+  const END = 2 * 60;        // 2:00 AM
+
+  // ❌ Sunday closed
+  if (day === 0) return false;
+
+  // ✅ Evening window
+  if (minutesNow >= START) return true;
+
+  // ✅ Early morning window (not Monday morning)
+  if (minutesNow < END && day !== 1) return true;
+
+  return false;
+}
 
 const IndexContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -27,9 +48,6 @@ const IndexContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [vegFilter, setVegFilter] = useState<VegFilterType>("all");
   const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>({});
-  
-  // Fetch menu items from database
-  const { items: menuItems, loading: menuLoading } = useMenuItems();
 
   // Delivery state
   const [dbDeliveryOpen, setDbDeliveryOpen] = useState<boolean | null>(null);
@@ -76,10 +94,11 @@ const IndexContent: React.FC = () => {
     };
   }, []);
 
-  /* ---------------- Use admin toggle directly ---------------- */
+  /* ---------------- Recompute final delivery ---------------- */
   useEffect(() => {
     if (dbDeliveryOpen === null) return;
-    setIsDeliveryOpen(dbDeliveryOpen);
+    const allowed = isWithinDeliveryWindow();
+    setIsDeliveryOpen(dbDeliveryOpen && allowed);
   }, [dbDeliveryOpen]);
 
   /* ---------------- Fetch stock status ---------------- */
@@ -131,7 +150,7 @@ const IndexContent: React.FC = () => {
   /* ---------------- Menu filtering logic ---------------- */
   const availableItems = useMemo(() => {
     return menuItems.filter((item) => stockStatus[item.id] !== false);
-  }, [stockStatus, menuItems]);
+  }, [stockStatus]);
 
   const applyVegFilter = (items: MenuItem[]) => {
     if (vegFilter === "all") return items;
@@ -150,7 +169,7 @@ const IndexContent: React.FC = () => {
       }
     });
     return cache;
-  }, [vegFilter, availableItems, menuItems]);
+  }, [vegFilter, availableItems]);
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -195,28 +214,10 @@ const IndexContent: React.FC = () => {
     searchQuery.trim() && Object.keys(allCategoryItems || {}).length > 0;
 
   /* ---------------- Render ---------------- */
-  const isLoading = isDeliveryLoading || menuLoading;
-
-  // Menu skeleton loader
-  const MenuSkeleton = () => (
-    <div className="px-4 py-6 max-w-7xl mx-auto">
-      <Skeleton className="h-8 w-40 mb-4" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ✅ Loader */}
-      {isLoading && (
+      {isDeliveryLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <div className="flex flex-col items-center gap-4">
             <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
@@ -228,50 +229,8 @@ const IndexContent: React.FC = () => {
       )}
 
       <Header isOpen={isDeliveryOpen} />
-      
-      {/* Ad Carousel - only show when delivery is open */}
-      {!isLoading && isDeliveryOpen && (
-        <AdCarousel
-          onInternalLink={(link) => {
-            console.log('onInternalLink called with:', link);
-            // Handle internal menu item links
-            // Format: #menu-item:oreo-shake or #oreo-shake
-            const menuItemName = link.replace('#menu-item:', '').replace('#', '');
-            console.log('Menu item name:', menuItemName);
-            
-            // For Oreo Shake, switch to cold-beverages category and search
-            if (menuItemName.toLowerCase().includes('oreo')) {
-              console.log('Navigating to Oreo Shake');
-              setSelectedCategory('cold-beverages');
-              setSearchQuery('Oreo Shake');
-              
-              // Scroll to the cold beverages section after a short delay
-              setTimeout(() => {
-                const section = document.getElementById('section-cold-beverages');
-                if (section) {
-                  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                  console.warn('Section cold-beverages not found');
-                }
-              }, 300);
-            } else if (link.startsWith('#category:')) {
-              // Handle category links: #category:cold-beverages
-              const categoryId = link.replace('#category:', '');
-              setSelectedCategory(categoryId);
-              setSearchQuery('');
-              
-              setTimeout(() => {
-                const section = document.getElementById(`section-${categoryId}`);
-                if (section) {
-                  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 300);
-            }
-          }}
-        />
-      )}
 
-      {!isLoading && isDeliveryOpen && (
+      {!isDeliveryLoading && isDeliveryOpen && (
         <>
           <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center">
@@ -294,7 +253,7 @@ const IndexContent: React.FC = () => {
       )}
 
       <main className="flex-1 pb-24">
-        {!isLoading && !isDeliveryOpen ? (
+        {!isDeliveryLoading && !isDeliveryOpen ? (
           /* CLOSED STATE */
           <div className="flex flex-col items-center justify-center text-center px-6 py-16 min-h-[50vh]">
             <p className="font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed">
@@ -305,11 +264,9 @@ const IndexContent: React.FC = () => {
               Bon Appétit Café Jampot ❤️
             </p>
           </div>
-        ) : !isLoading && isDeliveryOpen ? (
+        ) : !isDeliveryLoading && isDeliveryOpen ? (
           /* OPEN STATE */
-          menuLoading ? (
-            <MenuSkeleton />
-          ) : showAllResults && allCategoryItems ? (
+          showAllResults && allCategoryItems ? (
             Object.entries(allCategoryItems).map(([categoryId, items]) => (
               <MenuSection
                 key={categoryId}
@@ -355,7 +312,7 @@ const IndexContent: React.FC = () => {
 
       <Footer />
 
-      {!isLoading && isDeliveryOpen && (
+      {!isDeliveryLoading && isDeliveryOpen && (
         <FloatingCart onViewCart={() => setIsCartOpen(true)} />
       )}
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

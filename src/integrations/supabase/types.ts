@@ -14,33 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      advertisements: {
-        Row: {
-          active: boolean
-          created_at: string
-          display_order: number
-          id: string
-          image_url: string
-          link_url: string | null
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          display_order?: number
-          id?: string
-          image_url: string
-          link_url?: string | null
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          display_order?: number
-          id?: string
-          image_url?: string
-          link_url?: string | null
-        }
-        Relationships: []
-      }
       delivery_settings: {
         Row: {
           id: string
@@ -59,63 +32,6 @@ export type Database = {
           is_open?: boolean
           updated_at?: string
           updated_by?: string | null
-        }
-        Relationships: []
-      }
-      feedback: {
-        Row: {
-          category: string
-          created_at: string
-          feedback_text: string
-          id: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          feedback_text: string
-          id?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          feedback_text?: string
-          id?: string
-        }
-        Relationships: []
-      }
-      menu_items: {
-        Row: {
-          category: string
-          created_at: string
-          id: string
-          is_available: boolean
-          is_veg: boolean
-          name: string
-          price: number
-          price_large: number | null
-          price_small: number | null
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          id?: string
-          is_available?: boolean
-          is_veg?: boolean
-          name: string
-          price: number
-          price_large?: number | null
-          price_small?: number | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          id?: string
-          is_available?: boolean
-          is_veg?: boolean
-          name?: string
-          price?: number
-          price_large?: number | null
-          price_small?: number | null
         }
         Relationships: []
       }
