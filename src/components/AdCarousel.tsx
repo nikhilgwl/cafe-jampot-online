@@ -1,0 +1,167 @@
+import React, { useEffect, useState, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Advertisement {
+  id: string;
+  image_url: string;
+  link_url: string | null;
+  display_order: number;
+}
+
+const AdCarousel: React.FC = () => {
+  const [ads, setAds] = useState<Advertisement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  // Fetch advertisements
+  useEffect(() => {
+    const fetchAds = async () => {
+      const { data, error } = await supabase
+        .from("advertisements")
+        .select("*")
+        .eq("active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) {
+        console.error("Failed to fetch ads:", error);
+      } else {
+        setAds(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchAds();
+  }, []);
+
+  // Auto-scroll every 5 seconds
+  useEffect(() => {
+    if (!emblaApi || ads.length <= 1) return;
+
+    const interval = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [emblaApi, ads.length]);
+
+  // Update scroll buttons state
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  const scrollPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  // Don't render if no ads
+  if (!loading && ads.length === 0) {
+    return null;
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="w-full px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <Skeleton className="w-full h-32 sm:h-40 md:h-48 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full px-4 py-3 bg-background">
+      <div className="max-w-7xl mx-auto relative">
+        <div className="overflow-hidden rounded-xl" ref={emblaRef}>
+          <div className="flex">
+            {ads.map((ad) => (
+              <div
+                key={ad.id}
+                className="flex-[0_0_100%] min-w-0"
+              >
+                {ad.link_url ? (
+                  <a
+                    href={ad.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <img
+                      src={ad.image_url}
+                      alt="Advertisement"
+                      className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl"
+                    />
+                  </a>
+                ) : (
+                  <img
+                    src={ad.image_url}
+                    alt="Advertisement"
+                    className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Navigation buttons - only show if more than 1 ad */}
+        {ads.length > 1 && (
+          <>
+            <button
+              onClick={scrollPrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={scrollNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            {/* Dots indicator */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {ads.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    emblaApi?.selectedScrollSnap() === index
+                      ? "bg-primary"
+                      : "bg-primary/30"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdCarousel;

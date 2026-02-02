@@ -8,11 +8,10 @@ import VegFilter, { VegFilterType } from "@/components/VegFilter";
 import FloatingCart from "@/components/FloatingCart";
 import CartSheet from "@/components/CartSheet";
 import Footer from "@/components/Footer";
-import {
-  categories,
-  menuItems,
-  MenuItem,
-} from "@/data/menuData";
+import AdCarousel from "@/components/AdCarousel";
+import { categories, MenuItem } from "@/data/menuData";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { fuzzyMatch } from "@/lib/fuzzySearch";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +47,9 @@ const IndexContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [vegFilter, setVegFilter] = useState<VegFilterType>("all");
   const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>({});
+  
+  // Fetch menu items from database
+  const { items: menuItems, loading: menuLoading } = useMenuItems();
 
   // Delivery state
   const [dbDeliveryOpen, setDbDeliveryOpen] = useState<boolean | null>(null);
@@ -150,7 +152,7 @@ const IndexContent: React.FC = () => {
   /* ---------------- Menu filtering logic ---------------- */
   const availableItems = useMemo(() => {
     return menuItems.filter((item) => stockStatus[item.id] !== false);
-  }, [stockStatus]);
+  }, [stockStatus, menuItems]);
 
   const applyVegFilter = (items: MenuItem[]) => {
     if (vegFilter === "all") return items;
@@ -169,7 +171,7 @@ const IndexContent: React.FC = () => {
       }
     });
     return cache;
-  }, [vegFilter, availableItems]);
+  }, [vegFilter, availableItems, menuItems]);
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -214,10 +216,28 @@ const IndexContent: React.FC = () => {
     searchQuery.trim() && Object.keys(allCategoryItems || {}).length > 0;
 
   /* ---------------- Render ---------------- */
+  const isLoading = isDeliveryLoading || menuLoading;
+
+  // Menu skeleton loader
+  const MenuSkeleton = () => (
+    <div className="px-4 py-6 max-w-7xl mx-auto">
+      <Skeleton className="h-8 w-40 mb-4" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="space-y-3">
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ✅ Loader */}
-      {isDeliveryLoading && (
+      {isLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <div className="flex flex-col items-center gap-4">
             <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
@@ -229,8 +249,11 @@ const IndexContent: React.FC = () => {
       )}
 
       <Header isOpen={isDeliveryOpen} />
+      
+      {/* Ad Carousel - only show when delivery is open */}
+      {!isLoading && isDeliveryOpen && <AdCarousel />}
 
-      {!isDeliveryLoading && isDeliveryOpen && (
+      {!isLoading && isDeliveryOpen && (
         <>
           <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center">
@@ -253,7 +276,7 @@ const IndexContent: React.FC = () => {
       )}
 
       <main className="flex-1 pb-24">
-        {!isDeliveryLoading && !isDeliveryOpen ? (
+        {!isLoading && !isDeliveryOpen ? (
           /* CLOSED STATE */
           <div className="flex flex-col items-center justify-center text-center px-6 py-16 min-h-[50vh]">
             <p className="font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed">
@@ -264,9 +287,11 @@ const IndexContent: React.FC = () => {
               Bon Appétit Café Jampot ❤️
             </p>
           </div>
-        ) : !isDeliveryLoading && isDeliveryOpen ? (
+        ) : !isLoading && isDeliveryOpen ? (
           /* OPEN STATE */
-          showAllResults && allCategoryItems ? (
+          menuLoading ? (
+            <MenuSkeleton />
+          ) : showAllResults && allCategoryItems ? (
             Object.entries(allCategoryItems).map(([categoryId, items]) => (
               <MenuSection
                 key={categoryId}
@@ -312,7 +337,7 @@ const IndexContent: React.FC = () => {
 
       <Footer />
 
-      {!isDeliveryLoading && isDeliveryOpen && (
+      {!isLoading && isDeliveryOpen && (
         <FloatingCart onViewCart={() => setIsCartOpen(true)} />
       )}
       <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
