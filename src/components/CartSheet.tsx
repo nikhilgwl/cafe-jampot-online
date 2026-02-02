@@ -56,7 +56,8 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   
-  const grandTotal = totalPrice + DELIVERY_CHARGE;
+  // Grand total is just subtotal (delivery charge is waived with free delivery discount)
+  const grandTotal = totalPrice;
 
   // Check auth status
   useEffect(() => {
@@ -366,7 +367,20 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
               </div>
               <div className='flex justify-between items-center text-sm text-muted-foreground'>
                 <span>Delivery Charges</span>
-                <span>₹{DELIVERY_CHARGE}</span>
+                <span>+₹{DELIVERY_CHARGE}</span>
+              </div>
+              <div className='flex justify-between items-center text-sm'>
+                <div className='flex items-center gap-2'>
+                  <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                    Free Delivery
+                  </span>
+                  <span className='text-xs text-muted-foreground bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full'>
+                    Limited Time
+                  </span>
+                </div>
+                <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                  -₹{DELIVERY_CHARGE}
+                </span>
               </div>
               <div className='flex justify-between items-center text-lg pt-2 border-t border-border'>
                 <span className='font-medium'>Grand Total</span>

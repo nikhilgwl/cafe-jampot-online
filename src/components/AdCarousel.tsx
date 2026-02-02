@@ -11,10 +11,18 @@ interface Advertisement {
   display_order: number;
 }
 
-const AdCarousel: React.FC = () => {
+interface AdCarouselProps {
+  onInternalLink?: (link: string) => void;
+}
+
+const AdCarousel: React.FC<AdCarouselProps> = ({ onInternalLink }) => {
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true,
+    dragFree: false,
+    containScroll: 'trimSnaps',
+  });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
 
@@ -92,32 +100,112 @@ const AdCarousel: React.FC = () => {
   return (
     <div className="w-full px-4 py-3 bg-background">
       <div className="max-w-7xl mx-auto relative">
-        <div className="overflow-hidden rounded-xl" ref={emblaRef}>
+        <div 
+          className="overflow-hidden rounded-xl" 
+          ref={emblaRef}
+          style={{ touchAction: 'pan-y' }}
+          onMouseDown={(e) => {
+            // Allow clicks on interactive elements
+            const target = e.target as HTMLElement;
+            if (target.closest('[role="button"], a')) {
+              e.stopPropagation();
+            }
+          }}
+        >
           <div className="flex">
             {ads.map((ad) => (
               <div
                 key={ad.id}
-                className="flex-[0_0_100%] min-w-0"
+                className="flex-[0_0_100%] min-w-0 relative"
+                style={{ pointerEvents: 'auto' }}
               >
                 {ad.link_url ? (
-                  <a
-                    href={ad.link_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
+                  ad.link_url.startsWith('#') && onInternalLink ? (
+                    <div
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Ad clicked, link:', ad.link_url);
+                        onInternalLink(ad.link_url!);
+                      }}
+                      className="block w-full cursor-pointer hover:opacity-90 active:opacity-75 transition-opacity relative z-10 select-none"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onInternalLink(ad.link_url!);
+                        }
+                      }}
+                      style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
+                    >
+                      <img
+                        src={ad.image_url}
+                        alt="Advertisement - Click to view"
+                        className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl pointer-events-none"
+                        draggable="false"
+                      />
+                    </div>
+                  ) : (
+                    <a
+                      href={ad.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block relative z-10 cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <img
+                        src={ad.image_url}
+                        alt="Advertisement"
+                        className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl"
+                        draggable="false"
+                      />
+                    </a>
+                  )
+                ) : (
+                  // Even without link_url, make it clickable if onInternalLink is provided
+                  onInternalLink ? (
+                    <div
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Ad clicked (no link_url), trying default navigation');
+                        // Default: navigate to cold-beverages for Oreo Shake
+                        onInternalLink('#oreo-shake');
+                      }}
+                      className="block w-full cursor-pointer hover:opacity-90 active:opacity-75 transition-opacity relative z-10 select-none"
+                      role="button"
+                      tabIndex={0}
+                      style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
+                    >
+                      <img
+                        src={ad.image_url}
+                        alt="Advertisement - Click to view"
+                        className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl pointer-events-none"
+                        draggable="false"
+                      />
+                    </div>
+                  ) : (
                     <img
                       src={ad.image_url}
                       alt="Advertisement"
                       className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl"
+                      draggable="false"
                     />
-                  </a>
-                ) : (
-                  <img
-                    src={ad.image_url}
-                    alt="Advertisement"
-                    className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-xl"
-                  />
+                  )
                 )}
               </div>
             ))}
@@ -128,32 +216,44 @@ const AdCarousel: React.FC = () => {
         {ads.length > 1 && (
           <>
             <button
-              onClick={scrollPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                scrollPrev();
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors z-20"
               aria-label="Previous slide"
+              type="button"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={scrollNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                scrollNext();
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-background transition-colors z-20"
               aria-label="Next slide"
+              type="button"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
             {/* Dots indicator */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
               {ads.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => emblaApi?.scrollTo(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    emblaApi?.scrollTo(index);
+                  }}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     emblaApi?.selectedScrollSnap() === index
                       ? "bg-primary"
                       : "bg-primary/30"
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
+                  type="button"
                 />
               ))}
             </div>
