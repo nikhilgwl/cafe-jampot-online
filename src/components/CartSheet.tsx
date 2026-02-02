@@ -36,6 +36,8 @@ interface CartSheetProps {
   onClose: () => void;
 }
 
+const DELIVERY_CHARGE = 10;
+
 const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
   const {
     items,
@@ -53,6 +55,8 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  
+  const grandTotal = totalPrice + DELIVERY_CHARGE;
 
   // Check auth status
   useEffect(() => {
@@ -119,7 +123,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
       const { error: dbError } = await supabase.from("orders").insert({
         user_id: user.id,
         items: orderItems,
-        total_amount: totalPrice,
+        total_amount: grandTotal,
         hostel_name: hostelName,
         status: "pending",
       });
@@ -143,7 +147,7 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
         )
         .join("\n");
 
-      const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${whatsappOrderItems}\n\n💰 *Total: ₹${totalPrice}*`;
+      const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${whatsappOrderItems}\n\n📦 Subtotal: ₹${totalPrice}\n🚚 Delivery: ₹${DELIVERY_CHARGE}\n\n💰 *Grand Total: ₹${grandTotal}*`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
@@ -355,11 +359,19 @@ const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Order Summary */}
-            <div className='border-t border-border pt-4 space-y-4'>
-              <div className='flex justify-between items-center text-lg'>
-                <span className='font-medium'>Total</span>
+            <div className='border-t border-border pt-4 space-y-3'>
+              <div className='flex justify-between items-center text-sm text-muted-foreground'>
+                <span>Subtotal</span>
+                <span>₹{totalPrice}</span>
+              </div>
+              <div className='flex justify-between items-center text-sm text-muted-foreground'>
+                <span>Delivery Charges</span>
+                <span>₹{DELIVERY_CHARGE}</span>
+              </div>
+              <div className='flex justify-between items-center text-lg pt-2 border-t border-border'>
+                <span className='font-medium'>Grand Total</span>
                 <span className='font-bold text-primary text-xl'>
-                  ₹{totalPrice}
+                  ₹{grandTotal}
                 </span>
               </div>
 
