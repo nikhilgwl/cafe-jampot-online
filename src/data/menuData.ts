@@ -42,9 +42,9 @@ export const menuItems: MenuItem[] = [
   { id: "7", name: "Poha (Small)", price: 60, category: "quick-bites", isVeg: true },
   { id: "8", name: "Poha (Large)", price: 90, category: "quick-bites", isVeg: true },
   { id: "9", name: "Corn Salt and Pepper", price: 110, category: "quick-bites", isVeg: true },
-  { id: "10", name: "Plain Maggi", price: 50, category: "quick-bites", isVeg: true },
-  { id: "11", name: "Vegetable Maggi", price: 60, category: "quick-bites", isVeg: true },
-  { id: "12", name: "Cheese Maggi", price: 65, category: "quick-bites", isVeg: true },
+  { id: "10", name: "Plain Maggie", price: 50, category: "quick-bites", isVeg: true },
+  { id: "11", name: "Vegetable Maggie", price: 60, category: "quick-bites", isVeg: true },
+  { id: "12", name: "Cheese Maggie", price: 65, category: "quick-bites", isVeg: true },
   // Momos - Veg
   { id: "13", name: "Veg Chili Pan Fried Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
   { id: "14", name: "Veg Kurkure Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
@@ -112,7 +112,7 @@ export const menuItems: MenuItem[] = [
 
   // Winter Special Quick Bites
   { id: "36", name: "Chilli Oil Eggs", price: 80, category: "winter-special", isVeg: false },
-  { id: "37", name: "Chilli Oil Maggi", price: 60, category: "winter-special", isVeg: true },
+  { id: "37", name: "Chilli Oil Maggie", price: 80, category: "winter-special", isVeg: true },
   { id: "38", name: "Egg Sandwich", price: 70, category: "winter-special", isVeg: false },
   { id: "39", name: "Egg Masala", price: 80, category: "winter-special", isVeg: false },
 
