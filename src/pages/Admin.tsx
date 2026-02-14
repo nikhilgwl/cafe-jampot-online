@@ -12,6 +12,17 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, Store, Package, LayoutDashboard, Search, Loader2, Users, UserCheck, Shield, Trash2 } from "lucide-react";
 import { menuItems, categories } from "@/data/menuData";
 import jampotLogo from "@/assets/cafe-jampot-logo.png";
+import { isWithinDeliveryWindow } from "@/lib/deliveryWindow";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface StockStatus {
   item_id: string;
@@ -45,6 +56,7 @@ const Admin: React.FC = () => {
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithRole[]>([]);
   const [approvingUser, setApprovingUser] = useState<string | null>(null);
   const [removingRole, setRemovingRole] = useState<string | null>(null);
+  const [showOverrideDialog, setShowOverrideDialog] = useState(false);
 
   useEffect(() => {
     const checkRoleAndRedirect = async (userId: string) => {
@@ -181,12 +193,13 @@ const Admin: React.FC = () => {
     setRemovingRole(null);
   };
 
-  const handleDeliveryToggle = async (checked: boolean) => {
+  const updateDelivery = async (isOpen: boolean, override: boolean) => {
     setUpdatingDelivery(true);
+    const { data: row } = await supabase.from("delivery_settings").select("id").limit(1).single();
     const { error } = await supabase
       .from("delivery_settings")
-      .update({ is_open: checked })
-      .eq("id", (await supabase.from("delivery_settings").select("id").limit(1).single()).data?.id);
+      .update({ is_open: isOpen, admin_override: override } as any)
+      .eq("id", row?.id);
 
     if (error) {
       toast({
@@ -195,13 +208,30 @@ const Admin: React.FC = () => {
         variant: "destructive",
       });
     } else {
-      setIsDeliveryOpen(checked);
+      setIsDeliveryOpen(isOpen);
       toast({
-        title: checked ? "Delivery Opened" : "Delivery Closed",
-        description: `Customers ${checked ? "can now" : "cannot"} place orders.`,
+        title: isOpen ? "Delivery Opened" : "Delivery Closed",
+        description: isOpen && override
+          ? "Delivery opened outside scheduled hours (override active)."
+          : `Customers ${isOpen ? "can now" : "cannot"} place orders.`,
       });
     }
     setUpdatingDelivery(false);
+  };
+
+  const handleDeliveryToggle = async (checked: boolean) => {
+    if (checked && !isWithinDeliveryWindow()) {
+      // Outside hours — ask for confirmation
+      setShowOverrideDialog(true);
+      return;
+    }
+    // Within hours or turning off
+    await updateDelivery(checked, false);
+  };
+
+  const handleOverrideConfirm = async () => {
+    setShowOverrideDialog(false);
+    await updateDelivery(true, true);
   };
 
   const handleStockToggle = async (itemId: string, itemName: string, isAvailable: boolean) => {
@@ -526,6 +556,24 @@ const Admin: React.FC = () => {
           </Button>
         </div>
       </main>
+
+      <AlertDialog open={showOverrideDialog} onOpenChange={setShowOverrideDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Open outside scheduled hours?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The café is currently outside its scheduled delivery window (Mon–Sat, 6:45 PM – 2:00 AM). 
+              Are you sure you want to open delivery anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleOverrideConfirm}>
+              Yes, Open Delivery
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
