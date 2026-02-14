@@ -1,0 +1,1 @@
+ALTER TABLE public.delivery_settings ADD COLUMN admin_override boolean NOT NULL DEFAULT false;

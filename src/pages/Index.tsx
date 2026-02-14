@@ -15,32 +15,8 @@ import {
 } from "@/data/menuData";
 
 import { fuzzyMatch } from "@/lib/fuzzySearch";
+import { isWithinDeliveryWindow } from "@/lib/deliveryWindow";
 import { supabase } from "@/integrations/supabase/client";
-
-/* =========================================================
-   Cafe Timing Rule
-   Sunday: Closed
-   Mon–Sat: 6:45 PM → 2:00 AM
-========================================================= */
-function isWithinDeliveryWindow(): boolean {
-  const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
-
-  const START = 18 * 60 + 45; // 6:45 PM
-  const END = 2 * 60;        // 2:00 AM
-
-  // ❌ Sunday closed
-  if (day === 0) return false;
-
-  // ✅ Evening window
-  if (minutesNow >= START) return true;
-
-  // ✅ Early morning window (not Monday morning)
-  if (minutesNow < END && day !== 1) return true;
-
-  return false;
-}
 
 const IndexContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -51,6 +27,7 @@ const IndexContent: React.FC = () => {
 
   // Delivery state
   const [dbDeliveryOpen, setDbDeliveryOpen] = useState<boolean | null>(null);
+  const [adminOverride, setAdminOverride] = useState(false);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
   const [isDeliveryLoading, setIsDeliveryLoading] = useState(true);
 
@@ -60,15 +37,17 @@ const IndexContent: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from("delivery_settings")
-          .select("is_open")
+          .select("is_open, admin_override")
           .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error("Failed to fetch delivery status:", error);
           setDbDeliveryOpen(false);
+          setAdminOverride(false);
         } else {
           setDbDeliveryOpen(data?.is_open ?? false);
+          setAdminOverride((data as any)?.admin_override ?? false);
         }
       } finally {
         setIsDeliveryLoading(false);
@@ -83,8 +62,9 @@ const IndexContent: React.FC = () => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "delivery_settings" },
         (payload) => {
-          const val = (payload.new as { is_open: boolean })?.is_open ?? false;
-          setDbDeliveryOpen(val);
+          const newData = payload.new as { is_open: boolean; admin_override: boolean };
+          setDbDeliveryOpen(newData?.is_open ?? false);
+          setAdminOverride(newData?.admin_override ?? false);
         }
       )
       .subscribe();
@@ -97,9 +77,8 @@ const IndexContent: React.FC = () => {
   /* ---------------- Recompute final delivery ---------------- */
   useEffect(() => {
     if (dbDeliveryOpen === null) return;
-    const allowed = isWithinDeliveryWindow();
-    setIsDeliveryOpen(dbDeliveryOpen && allowed);
-  }, [dbDeliveryOpen]);
+    setIsDeliveryOpen(dbDeliveryOpen && (adminOverride || isWithinDeliveryWindow()));
+  }, [dbDeliveryOpen, adminOverride]);
 
   /* ---------------- Fetch stock status ---------------- */
   useEffect(() => {

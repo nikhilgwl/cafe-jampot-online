@@ -43,18 +43,21 @@ export type Database = {
       }
       delivery_settings: {
         Row: {
+          admin_override: boolean
           id: string
           is_open: boolean
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          admin_override?: boolean
           id?: string
           is_open?: boolean
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          admin_override?: boolean
           id?: string
           is_open?: boolean
           updated_at?: string
