@@ -131,7 +131,8 @@ export const menuItems: MenuItem[] = [
   { id: "49", name: "Masala Coke", price: 35, category: "cold-beverages", isVeg: true },
   { id: "50", name: "Coke Float", price: 55, category: "cold-beverages", isVeg: true },
   { id: "51", name: "Iced Tea", price: 50, category: "cold-beverages", isVeg: true },
-  { id: "57", name: "Coke (Sugarfree)", price: 40, category: "cold-beverages", isVeg: true },
+  { id: "57", name: "Coke (Zero Sugar)", price: 40, category: "cold-beverages", isVeg: true },
+  { id: "58", name: "Diet Coke", price: 40, category: "cold-beverages", isVeg: true },
 
   // Hot Beverages
   { id: "52", name: "Hot Coffee", price: 30, category: "hot-beverages", isVeg: true },
