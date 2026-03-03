@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Plus, Minus, Trash2, ShoppingBag, Phone,
-  User, Building2, Send, Truck, CheckCircle2
+  Plus, Minus, ShoppingBag,
+  Send, CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice: subtotal } = useCart();
@@ -30,7 +31,7 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
   const finalTotal = subtotal + deliveryFee;
   const progress = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     if (!customerDetails.name.trim() || customerDetails.mobile.length < 10 || !customerDetails.hostel) {
       toast({ title: "Missing Details", description: "Please fill all delivery info.", variant: "destructive" });
       return;
@@ -38,23 +39,51 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     setIsSubmitting(true);
 
-    // Format WhatsApp Message
-    const orderItems = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
+    // 1. Prepare data and message
     const hostelName = customerDetails.hostel === "Other" ? customerDetails.customHostel : customerDetails.hostel;
-
+    const orderItems = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
     const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItems}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
 
-    // Trigger Success Animation
-    setShowSuccess(true);
+    try {
+      // 2. Open WhatsApp FIRST to prioritize the user's action
+      const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, "_blank");
 
-    // Redirect after short delay to let animation play
-    setTimeout(() => {
-      window.open(`https://wa.me/918789512909?text=${encodeURIComponent(message)}`, "_blank");
-      clearCart();
-      setShowSuccess(false);
+      // 3. IMMEDIATELY write to Supabase while the user is being redirected
+      const { error } = await supabase
+        .from("orders")
+        .insert({
+          customer_name: customerDetails.name,
+          customer_mobile: customerDetails.mobile,
+          hostel_name: hostelName || "Unknown",
+          items: items as any,
+          subtotal: subtotal,
+          delivery_fee: deliveryFee,
+          total_amount: finalTotal,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      // 4. Trigger the Success UI
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        clearCart();
+        setShowSuccess(false);
+        setIsSubmitting(false);
+        onClose();
+      }, 2000);
+
+    } catch (error: any) {
+      console.error("Database Error:", error);
+      toast({
+        title: "Order Logged to WhatsApp",
+        description: "WhatsApp opened, but we couldn't sync to the dashboard. Please inform Mr. Nikhil.",
+        variant: "destructive"
+      });
       setIsSubmitting(false);
-      onClose();
-    }, 2000);
+    }
   };
 
   return (

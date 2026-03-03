@@ -30,6 +30,9 @@ const IndexContent: React.FC = () => {
   const [adminOverride, setAdminOverride] = useState(false);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
   const [isDeliveryLoading, setIsDeliveryLoading] = useState(true);
+  const [dbMenuItems, setDbMenuItems] = useState<MenuItem[]>([]);
+  const [isMenuLoading, setIsMenuLoading] = useState(true);
+
 
   /* ---------------- Fetch delivery flag ---------------- */
   useEffect(() => {
@@ -80,6 +83,39 @@ const IndexContent: React.FC = () => {
     setIsDeliveryOpen(dbDeliveryOpen && (adminOverride || isWithinDeliveryWindow()));
   }, [dbDeliveryOpen, adminOverride]);
 
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("menu_items")
+          .select("*")
+          .eq("is_available", true);
+
+        if (error) throw error;
+
+        // Map database naming to local MenuItem naming if necessary
+        const mappedItems: MenuItem[] = (data || []).map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          priceSmall: item.price_small,
+          priceLarge: item.price_large,
+          category: item.category,
+          isVeg: item.is_veg,
+          hasVariants: !!(item.price_small || item.price_large)
+        }));
+
+        setDbMenuItems(mappedItems);
+      } catch (err) {
+        console.error("Error fetching menu:", err);
+      } finally {
+        setIsMenuLoading(false);
+      }
+    };
+
+    fetchMenu();
+  }, []);
+
   /* ---------------- Fetch stock status ---------------- */
   useEffect(() => {
     const fetchStockStatus = async () => {
@@ -128,8 +164,9 @@ const IndexContent: React.FC = () => {
 
   /* ---------------- Menu filtering logic ---------------- */
   const availableItems = useMemo(() => {
-    return menuItems.filter((item) => stockStatus[item.id] !== false);
-  }, [stockStatus]);
+    // filter by stockStatus if you still maintain that logic separately
+    return dbMenuItems.filter((item) => stockStatus[item.id] !== false);
+  }, [dbMenuItems, stockStatus]);
 
   const applyVegFilter = (items: MenuItem[]) => {
     if (vegFilter === "all") return items;
