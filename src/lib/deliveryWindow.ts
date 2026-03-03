@@ -3,22 +3,26 @@
  * Sunday: Closed
  * Mon–Sat: 6:45 PM → 2:00 AM
  */
-export function isWithinDeliveryWindow(): boolean {
+
+export const isWithinDeliveryWindow = (): boolean => {
   const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const START = 18 * 60 + 45; // 6:45 PM
-  const END = 2 * 60;        // 2:00 AM
+  const OPEN_TIME = 18 * 60 + 45; // 6:45 PM
+  const CLOSE_TIME = 2 * 60;      // 2:00 AM (Next Day)
 
-  // ❌ Sunday closed
-  if (day === 0) return false;
+  // Edge Case: Handling Sunday morning (12AM - 2AM) as part of Saturday night
+  if (currentDay === 0) { // It is Sunday
+    return currentTimeInMinutes < CLOSE_TIME; // Open ONLY if before 2:00 AM
+  }
 
-  // ✅ Evening window
-  if (minutesNow >= START) return true;
+  // Handle Monday: Should only open after 6:45 PM
+  if (currentDay === 1) { // It is Monday
+    return currentTimeInMinutes >= OPEN_TIME; // Closed from 12AM-2AM (Sunday night)
+  }
 
-  // ✅ Early morning window (not Monday morning)
-  if (minutesNow < END && day !== 1) return true;
-
-  return false;
-}
+  // Standard Tue-Sat logic
+  // Open if it's after 6:45 PM OR before 2:00 AM
+  return currentTimeInMinutes >= OPEN_TIME || currentTimeInMinutes < CLOSE_TIME;
+};
