@@ -22,12 +22,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addItem = (item: MenuItem) => {
     setItems(prev => {
+      // Check for the unique ID (e.g., "q2-small") passed by the MenuItem component
       const existingItem = prev.find(i => i.id === item.id);
       if (existingItem) {
         return prev.map(i =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
+      // Spread the incoming item to capture the dynamic 'price' and 'name' for variants
       return [...prev, { ...item, quantity: 1 }];
     });
   };
@@ -51,6 +53,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // This now works correctly because 'item.price' is the specific variant price 
+  // assigned in the MenuItem component (e.g., 70 for Small, 120 for Large)
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (

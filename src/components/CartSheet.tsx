@@ -1,15 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  X,
-  Plus,
-  Minus,
-  Trash2,
-  ShoppingBag,
-  Phone,
-  User,
-  Building2,
-  Send,
+  Plus, Minus, Trash2, ShoppingBag, Phone,
+  User, Building2, Send, Truck, CheckCircle2
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
   SheetContent,
@@ -22,296 +16,139 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface CustomerDetails {
-  name: string;
-  mobile: string;
-  hostel: string;
-  customHostel?: string;
-}
-
-interface CartSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const CartSheet: React.FC<CartSheetProps> = ({ isOpen, onClose }) => {
-  const {
-    items,
-    updateQuantity,
-    removeItem,
-    clearCart,
-    totalPrice,
-  } = useCart();
+const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  const { items, updateQuantity, removeItem, clearCart, totalPrice: subtotal } = useCart();
   const { toast } = useToast();
-  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
-    name: "",
-    mobile: "",
-    hostel: "",
-    customHostel: "",
-  });
+
+  const [customerDetails, setCustomerDetails] = useState({ name: "", mobile: "", hostel: "", customHostel: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Delivery Logic
+  const FREE_DELIVERY_THRESHOLD = 100;
+  const deliveryFee = subtotal > 0 && subtotal < FREE_DELIVERY_THRESHOLD ? 10 : 0;
+  const finalTotal = subtotal + deliveryFee;
+  const progress = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
 
   const handleSubmitOrder = () => {
-    if (!customerDetails.name.trim()) {
-      toast({ title: "Please enter your name", variant: "destructive" });
-      return;
-    }
-    if (!customerDetails.mobile.trim() || customerDetails.mobile.length < 10) {
-      toast({
-        title: "Please enter a valid mobile number",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (
-      !customerDetails.hostel.trim() &&
-      !customerDetails.customHostel?.trim()
-    ) {
-      toast({ title: "Please enter your hostel name", variant: "destructive" });
+    if (!customerDetails.name.trim() || customerDetails.mobile.length < 10 || !customerDetails.hostel) {
+      toast({ title: "Missing Details", description: "Please fill all delivery info.", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
 
-    // Format order for WhatsApp
-    const orderItems = items
-      .map(
-        (item) =>
-          `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
-      )
-      .join("\n");
+    // Format WhatsApp Message
+    const orderItems = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
+    const hostelName = customerDetails.hostel === "Other" ? customerDetails.customHostel : customerDetails.hostel;
 
-    // Use customHostel if "Other" is selected, otherwise use the selected hostel
-    const hostelName =
-      customerDetails.hostel === "Other"
-        ? customerDetails.customHostel || ""
-        : customerDetails.hostel || "";
+    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItems}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
 
-    const message = `🛒 *New Order from Cafe Jampot Website*\n\n*Customer Details:*\n👤 Name: ${customerDetails.name}\n📱 Mobile: ${customerDetails.mobile}\n🏠 Hostel: ${hostelName}\n\n*Order:*\n${orderItems}\n\n💰 *Total: ₹${totalPrice}*`;
+    // Trigger Success Animation
+    setShowSuccess(true);
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/918789512909?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-
-    toast({
-      title: "Order sent! 🎉",
-      description:
-        "Your order has been sent via WhatsApp. Mr. Ajay will contact you soon.",
-    });
-
-    clearCart();
-    setCustomerDetails({ name: "", mobile: "", hostel: "", customHostel: "" });
-    setIsSubmitting(false);
-    onClose();
+    // Redirect after short delay to let animation play
+    setTimeout(() => {
+      window.open(`https://wa.me/918789512909?text=${encodeURIComponent(message)}`, "_blank");
+      clearCart();
+      setShowSuccess(false);
+      setIsSubmitting(false);
+      onClose();
+    }, 2000);
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className='w-full sm:max-w-lg bg-background border-border flex flex-col h-full'>
-        <SheetHeader className='border-b border-border pb-4'>
-          <SheetTitle className='font-display text-2xl flex items-center gap-2'>
-            <ShoppingBag className='w-6 h-6 text-primary' />
-            Your Cart
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent className="w-full sm:max-w-lg p-0 overflow-hidden flex flex-col">
 
-        {items.length === 0 ? (
-          <div className='flex-1 flex flex-col items-center justify-center text-center p-8'>
-            <ShoppingBag className='w-16 h-16 text-muted-foreground/50 mb-4' />
-            <h3 className='font-display text-xl text-muted-foreground'>
-              Your cart is empty
-            </h3>
-            <p className='text-sm text-muted-foreground mt-2'>
-              Add some delicious items from our menu!
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className='flex-1 overflow-y-auto py-4 space-y-3'>
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className='menu-card flex items-center gap-4'
-                >
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2'>
-                      <span
-                        className={`w-3 h-3 border-2 flex items-center justify-center rounded-sm text-[8px] ${
-                          item.isVeg
-                            ? "border-sage text-sage"
-                            : "border-terracotta text-terracotta"
-                        }`}
-                      >
-                        ●
-                      </span>
-                      <h4 className='font-medium text-sm truncate'>
-                        {item.name}
-                      </h4>
-                    </div>
-                    <p className='text-primary font-semibold'>
-                      ₹{item.price * item.quantity}
-                    </p>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <div className='flex items-center gap-1 bg-secondary rounded-lg overflow-hidden'>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
-                        className='p-2 text-secondary-foreground hover:bg-secondary/80 transition-colors'
-                      >
-                        <Minus className='w-3 h-3' />
-                      </button>
-                      <span className='text-secondary-foreground font-bold w-6 text-center text-sm'>
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
-                        className='p-2 text-secondary-foreground hover:bg-secondary/80 transition-colors'
-                      >
-                        <Plus className='w-3 h-3' />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className='p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors'
-                    >
-                      <Trash2 className='w-4 h-4' />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {/* Customer Details Form */}
-              <div className='pt-4 border-t border-border space-y-4'>
-                <h3 className='font-display text-lg font-semibold'>
-                  Delivery Details
-                </h3>
-
-                <div className='space-y-3'>
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='name'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <User className='w-4 h-4' />
-                      Your Name
-                    </Label>
-                    <Input
-                      id='name'
-                      placeholder='Enter your name'
-                      value={customerDetails.name}
-                      onChange={(e) =>
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      className='bg-secondary border-border'
-                    />
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='mobile'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <Phone className='w-4 h-4' />
-                      Mobile Number
-                    </Label>
-                    <Input
-                      id='mobile'
-                      type='tel'
-                      placeholder='Enter your mobile number'
-                      value={customerDetails.mobile}
-                      onChange={(e) =>
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          mobile: e.target.value,
-                        }))
-                      }
-                      className='bg-secondary border-border'
-                    />
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label
-                      htmlFor='hostel'
-                      className='flex items-center gap-2 text-sm'
-                    >
-                      <Building2 className='w-4 h-4' />
-                      Hostel Name
-                    </Label>
-
-                    {/* Hostel Dropdown */}
-                    <select
-                      id='hostel'
-                      value={customerDetails.hostel}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setCustomerDetails((prev) => ({
-                          ...prev,
-                          hostel: value,
-                        }));
-                      }}
-                      className='w-full rounded-md bg-secondary border border-border px-3 py-2 text-sm'
-                    >
-                      <option value=''>Select Hostel</option>
-                      <option value='Fr. Enright'>Fr. Enright</option>
-                      <option value='Nilima'>Nilima</option>
-                      <option value='MTR'>MTR</option>
-                      <option value='St. Thomas'>St. Thomas</option>
-                      <option value='NH (Girls)'>NH (Girls)</option>
-                      <option value='NH (Boys)'>NH (Boys)</option>
-                      <option value='Other'>Other</option>
-                    </select>
-
-                    {/* Show only if Other is selected */}
-                    {customerDetails.hostel === "Other" && (
-                      <Input
-                        placeholder='Enter hostel name'
-                        value={customerDetails.customHostel || ""}
-                        onChange={(e) =>
-                          setCustomerDetails((prev) => ({
-                            ...prev,
-                            customHostel: e.target.value,
-                          }))
-                        }
-                        className='bg-secondary border-border'
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Order Summary */}
-            <div className='border-t border-border pt-4 space-y-4'>
-              <div className='flex justify-between items-center text-lg'>
-                <span className='font-medium'>Total</span>
-                <span className='font-bold text-primary text-xl'>
-                  ₹{totalPrice}
-                </span>
-              </div>
-
-              <Button
-                onClick={handleSubmitOrder}
-                disabled={isSubmitting}
-                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg font-semibold'
+        {/* Success Overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 bg-primary flex flex-col items-center justify-center text-primary-foreground p-6 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }} animate={{ scale: 1, rotate: 360 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
-                <Send className='w-5 h-5 mr-2' />
-                Place Order via WhatsApp
-              </Button>
+                <CheckCircle2 className="w-24 h-24 mb-4" />
+              </motion.div>
+              <h2 className="text-3xl font-bold mb-2">Order Confirmed!</h2>
+              <p className="opacity-90">Redirecting you to WhatsApp to finalize with Mr. Ajay...</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <p className='text-xs text-muted-foreground text-center'>
-                Your order will be sent to Mr. Ajay via WhatsApp
-              </p>
-            </div>
-          </>
+        <div className="p-6 border-b">
+          <SheetHeader><SheetTitle className="flex items-center gap-2"><ShoppingBag className="text-primary" /> Your Cart</SheetTitle></SheetHeader>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {items.length === 0 ? (
+            <div className="text-center py-12 opacity-50"><ShoppingBag className="w-12 h-12 mx-auto mb-4" />Your cart is empty</div>
+          ) : (
+            <>
+              {/* Progress Bar */}
+              <div className="bg-secondary/30 p-4 rounded-xl">
+                <div className="flex justify-between text-xs mb-2 font-medium">
+                  <span>{subtotal >= 100 ? "Free Delivery Unlocked!" : `Add ₹${100 - subtotal} for Free Delivery`}</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className={`h-full ${subtotal >= 100 ? 'bg-green-500' : 'bg-primary'}`} />
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3">
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center bg-card p-3 rounded-lg border">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-medium truncate">{item.name}</h4>
+                      <p className="text-xs text-primary font-bold">₹{item.price * item.quantity}</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-secondary rounded-md px-2 py-1">
+                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="w-3 h-3" /></button>
+                      <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="w-3 h-3" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Delivery Form */}
+              <div className="space-y-4 border-t pt-4">
+                <Label className="text-lg font-bold">Delivery to Hostel</Label>
+                <Input placeholder="Your Name" value={customerDetails.name} onChange={e => setCustomerDetails({ ...customerDetails, name: e.target.value })} />
+                <Input placeholder="Mobile Number" type="tel" value={customerDetails.mobile} onChange={e => setCustomerDetails({ ...customerDetails, mobile: e.target.value })} />
+                <select
+                  className="w-full p-2 rounded-md border bg-background"
+                  value={customerDetails.hostel}
+                  onChange={e => setCustomerDetails({ ...customerDetails, hostel: e.target.value })}
+                >
+                  <option value="">Select Hostel</option>
+                  <option value="Fr. Enright">Fr. Enright</option>
+                  <option value="Nilima">Nilima</option>
+                  <option value="MTR">MTR</option>
+                  <option value="St. Thomas">St. Thomas</option>
+                  <option value="NH (Girls)">NH (Girls)</option>
+                  <option value="NH (Boys)">NH (Boys)</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+
+        {items.length > 0 && (
+          <div className="p-6 bg-card border-t space-y-4">
+            <div className="flex justify-between text-sm"><span>Subtotal</span><span>₹{subtotal}</span></div>
+            <div className="flex justify-between text-sm"><span>Delivery</span><span className={deliveryFee === 0 ? "text-green-600 font-bold" : ""}>{deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}</span></div>
+            <div className="flex justify-between text-xl font-bold border-t pt-2"><span>Total</span><span className="text-primary">₹{finalTotal}</span></div>
+            <Button onClick={handleSubmitOrder} disabled={isSubmitting} className="w-full py-6 text-lg font-bold gap-2">
+              <Send className="w-5 h-5" /> Place Order
+            </Button>
+          </div>
         )}
       </SheetContent>
     </Sheet>

@@ -10,54 +10,80 @@ interface MenuItemProps {
 
 const MenuItem: React.FC<MenuItemProps> = memo(({ item }) => {
   const { items, addItem, updateQuantity } = useCart();
-  const cartItem = items.find(i => i.id === item.id);
-  const quantity = cartItem?.quantity || 0;
+
+  const renderAddToCart = (displayPrice: number, label?: string) => {
+    const cartItemId = label ? `${item.id}-${label.toLowerCase()}` : item.id;
+    const cartItem = items.find(i => i.id === cartItemId);
+    const quantity = cartItem?.quantity || 0;
+
+    if (quantity === 0) {
+      return (
+        <Button
+          onClick={() => addItem({
+            ...item,
+            id: cartItemId,
+            price: displayPrice,
+            name: label ? `${item.name} (${label})` : item.name
+          })}
+          size="sm"
+          // Reduced padding (px-2) and text size (text-xs) to prevent overflow
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg h-9 px-2 gap-1 shadow-sm transition-all text-xs sm:text-sm"
+        >
+          <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">
+            {label ? `${label.charAt(0)} - ₹${displayPrice}` : `Add - ₹${displayPrice}`}
+          </span>
+        </Button>
+      );
+    }
+
+    return (
+      <div className="flex w-full items-center justify-between bg-primary rounded-lg overflow-hidden h-9 shadow-sm">
+        <button
+          onClick={() => updateQuantity(cartItemId, quantity - 1)}
+          className="flex-1 h-full text-primary-foreground hover:bg-primary-foreground/10 transition-colors flex items-center justify-center"
+        >
+          <Minus className="w-3.5 h-3.5" />
+        </button>
+        <span className="text-primary-foreground font-bold text-xs px-1 min-w-[1.2rem] text-center">
+          {quantity}
+        </span>
+        <button
+          onClick={() => addItem({ ...item, id: cartItemId, price: displayPrice })}
+          className="flex-1 h-full text-primary-foreground hover:bg-primary-foreground/10 transition-colors flex items-center justify-center"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  };
 
   return (
-    <div className="menu-card flex flex-col h-full animate-fade-in group">
-      <div className="flex-1 min-w-0 mb-4">
-        <div className="flex items-start gap-2.5 mb-3">
-          <span
-            className={`veg-badge mt-0.5 ${
-              item.isVeg ? 'veg-badge-veg' : 'veg-badge-nonveg'
-            }`}
-          >
+    <div className="menu-card flex flex-col h-full animate-fade-in group border border-border/40 p-3 rounded-xl bg-card shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex-1 min-w-0 mb-3">
+        <div className="flex items-start gap-2 mb-1">
+          <span className={`veg-badge mt-1 shrink-0 ${item.isVeg ? 'veg-badge-veg' : 'veg-badge-nonveg'}`}>
             ●
           </span>
-          <h3 className="font-medium text-foreground text-sm leading-snug group-hover:text-primary transition-colors">
+          <h3 className="font-medium text-foreground text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
             {item.name}
           </h3>
         </div>
-        <p className="text-xl font-bold text-primary tracking-tight">₹{item.price}</p>
+        {!item.hasVariants && (
+          <p className="text-base font-bold text-primary">₹{item.price}</p>
+        )}
       </div>
 
       <div className="mt-auto">
-        {quantity === 0 ? (
-          <Button
-            onClick={() => addItem(item)}
-            size="sm"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl h-10 gap-2 shadow-md hover:shadow-lg transition-all"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Add to Cart
-          </Button>
+        {item.hasVariants ? (
+          // Using a grid with 2 columns ensures they stay side-by-side without overlapping
+          <div className="grid grid-cols-2 gap-2">
+            {item.priceSmall !== undefined && renderAddToCart(item.priceSmall, 'Small')}
+            {item.priceLarge !== undefined && renderAddToCart(item.priceLarge, 'Large')}
+          </div>
         ) : (
-          <div className="flex items-center justify-between bg-primary rounded-xl overflow-hidden h-10 shadow-md">
-            <button
-              onClick={() => updateQuantity(item.id, quantity - 1)}
-              className="px-4 h-full text-primary-foreground hover:bg-primary-foreground/10 transition-colors flex items-center justify-center"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <span className="text-primary-foreground font-bold text-lg min-w-[2rem] text-center">
-              {quantity}
-            </span>
-            <button
-              onClick={() => addItem(item)}
-              className="px-4 h-full text-primary-foreground hover:bg-primary-foreground/10 transition-colors flex items-center justify-center"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+          <div className="w-full">
+            {renderAddToCart(item.price)}
           </div>
         )}
       </div>

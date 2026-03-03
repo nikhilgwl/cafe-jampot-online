@@ -19,38 +19,50 @@ export interface MenuCategory {
 export const categories: MenuCategory[] = [
   { id: "all", name: "All Items", icon: "📋" },
   { id: "quick-bites", name: "Quick Bites", icon: "🍟" },
+  { id: "eggy-pops", name: "Eggy Pops", icon: "🥚" },
   { id: "sandwiches", name: "Sandwiches", icon: "🥪" },
   { id: "pasta", name: "Pasta", icon: "🍝" },
-  { id: "chinese", name: "Chinese", icon: "🥡" },
+  { id: "chinese", name: "Chowmein", icon: "🥡" },
   { id: "fried-rice", name: "Fried Rice", icon: "🍚" },
   { id: "mains", name: "Mains", icon: "🍛" },
   { id: "soups", name: "Soups", icon: "🍲" },
-  { id: "winter-special", name: "Winter Special", icon: "❄️" },
   { id: "fries", name: "Fries", icon: "🍟" },
   { id: "cold-beverages", name: "Cold Drinks", icon: "🧊" },
+  { id: "mocktails", name: "Mocktails", icon: "🍹" },
   { id: "hot-beverages", name: "Hot Drinks", icon: "☕" },
 ];
 
 export const menuItems: MenuItem[] = [
   // Quick Bites
-  { id: "1", name: "Honey Chili Fries", price: 120, category: "quick-bites", isVeg: true },
-  { id: "2", name: "Peri Peri Fries (Small)", price: 70, category: "quick-bites", isVeg: true },
-  { id: "3", name: "Peri Peri Fries (Large)", price: 120, category: "quick-bites", isVeg: true },
-  { id: "4", name: "Salted Fries (Small)", price: 60, category: "quick-bites", isVeg: true },
-  { id: "5", name: "Salted Fries (Large)", price: 110, category: "quick-bites", isVeg: true },
-  { id: "6", name: "Masala Peanuts", price: 80, category: "quick-bites", isVeg: true },
-  { id: "7", name: "Poha (Small)", price: 60, category: "quick-bites", isVeg: true },
-  { id: "8", name: "Poha (Large)", price: 90, category: "quick-bites", isVeg: true },
-  { id: "9", name: "Corn Salt and Pepper", price: 110, category: "quick-bites", isVeg: true },
-  { id: "10", name: "Plain Maggie", price: 50, category: "quick-bites", isVeg: true },
-  { id: "11", name: "Vegetable Maggie", price: 60, category: "quick-bites", isVeg: true },
-  { id: "12", name: "Cheese Maggie", price: 65, category: "quick-bites", isVeg: true },
-  // Momos - Veg
-  { id: "13", name: "Veg Chili Pan Fried Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
-  { id: "14", name: "Veg Kurkure Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
-  // Momos - Non-Veg
-  { id: "13a", name: "Chicken Chili Pan Fried Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
-  { id: "14a", name: "Chicken Kurkure Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
+  { id: "q1", name: "Masala Peanuts", price: 80, category: "quick-bites", isVeg: true },
+  { id: "q2", name: "Poha", price: 0, priceSmall: 60, priceLarge: 90, category: "quick-bites", isVeg: true, hasVariants: true },
+  { id: "q3", name: "Corn Salt and Pepper", price: 110, category: "quick-bites", isVeg: true },
+  { id: "q4", name: "Plain Maggi", price: 50, category: "quick-bites", isVeg: true },
+  { id: "q5", name: "Vegetable Maggi", price: 60, category: "quick-bites", isVeg: true },
+  { id: "q6", name: "Cheese Maggi", price: 65, category: "quick-bites", isVeg: true },
+  { id: "q7", name: "Egg Maggi", price: 65, category: "quick-bites", isVeg: false },
+  { id: "q8", name: "Wai Wai Bhel", price: 80, category: "quick-bites", isVeg: true },
+  { id: "q9", name: "Chilli Oil Maggi/PiP Maggi", price: 80, category: "quick-bites", isVeg: true },
+
+  // Momos
+  { id: "m1v", name: "Veg Chili Pan Fried Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
+  { id: "m1nv", name: "Chicken Chili Pan Fried Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
+  { id: "m2v", name: "Veg Kurkure Momos (6 pcs)", price: 100, category: "quick-bites", isVeg: true },
+  { id: "m2nv", name: "Chicken Kurkure Momos (6 pcs)", price: 120, category: "quick-bites", isVeg: false },
+  { id: "m3v", name: "Veg Fried Momos (6/10 pcs)", price: 0, priceSmall: 80, priceLarge: 110, category: "quick-bites", isVeg: true, hasVariants: true },
+  { id: "m3nv", name: "Chicken Fried Momos (6/10 pcs)", price: 0, priceSmall: 90, priceLarge: 130, category: "quick-bites", isVeg: false, hasVariants: true },
+  { id: "m4v", name: "Veg Steamed Momos (6/10 pcs)", price: 0, priceSmall: 60, priceLarge: 90, category: "quick-bites", isVeg: true, hasVariants: true },
+  { id: "m4nv", name: "Chicken Steamed Momos (6/10 pcs)", price: 0, priceSmall: 80, priceLarge: 120, category: "quick-bites", isVeg: false, hasVariants: true },
+
+  // Eggy Pops
+  { id: "e1", name: "Boiled Eggs", price: 30, category: "eggy-pops", isVeg: false },
+  { id: "e2", name: "Egg Bhurji", price: 50, category: "eggy-pops", isVeg: false },
+  { id: "e3", name: "Egg Bhurji + Toast", price: 75, category: "eggy-pops", isVeg: false },
+  { id: "e4", name: "Omelette", price: 50, category: "eggy-pops", isVeg: false },
+  { id: "e5", name: "Bread Omelette", price: 80, category: "eggy-pops", isVeg: false },
+  { id: "e6", name: "Half Fry", price: 50, category: "eggy-pops", isVeg: false },
+  { id: "e7", name: "Chilli Oil Eggs", price: 60, category: "eggy-pops", isVeg: false },
+  { id: "e8", name: "Egg Masala", price: 60, category: "eggy-pops", isVeg: false },
 
   // Sandwiches
   { id: "15", name: "Paneer Grill Sandwich", price: 90, category: "sandwiches", isVeg: true },
@@ -58,88 +70,82 @@ export const menuItems: MenuItem[] = [
   { id: "17", name: "Grill Sandwich", price: 60, category: "sandwiches", isVeg: true },
   { id: "18", name: "Cheese Grill Sandwich", price: 80, category: "sandwiches", isVeg: true },
   { id: "18a", name: "Chicken Grill Sandwich", price: 110, category: "sandwiches", isVeg: false },
+  { id: "s1", name: "Egg Sandwich", price: 70, category: "sandwiches", isVeg: false },
 
-  // Pasta - Veg
-  { id: "19", name: "Veg Red Sauce Pasta", price: 130, category: "pasta", isVeg: true },
-  { id: "20", name: "Veg White Sauce Pasta", price: 130, category: "pasta", isVeg: true },
-  { id: "21", name: "Veg Pink Sauce Pasta", price: 130, category: "pasta", isVeg: true },
-  // Pasta - Non-Veg
-  { id: "19a", name: "Chicken Red Sauce Pasta", price: 150, category: "pasta", isVeg: false },
-  { id: "20a", name: "Chicken White Sauce Pasta", price: 150, category: "pasta", isVeg: false },
-  { id: "21a", name: "Chicken Pink Sauce Pasta", price: 150, category: "pasta", isVeg: false },
+  // Pasta
+  { id: "p1v", name: "Veg Red Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  { id: "p1nv", name: "Chicken Red Sauce Pasta", price: 160, category: "pasta", isVeg: false },
+  { id: "p2v", name: "Veg White Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  { id: "p2nv", name: "Chicken White Sauce Pasta", price: 160, category: "pasta", isVeg: false },
+  { id: "p3v", name: "Veg Pink Sauce Pasta", price: 130, category: "pasta", isVeg: true },
+  { id: "p3nv", name: "Chicken Pink Sauce Pasta", price: 160, category: "pasta", isVeg: false },
 
-  // Chinese - Veg
-  { id: "22", name: "Veg Chow Mein", price: 120, category: "chinese", isVeg: true },
-  { id: "23", name: "Veg Garlic Chow Mein", price: 130, category: "chinese", isVeg: true },
-  { id: "24", name: "Veg Schezwan Chow Mein", price: 130, category: "chinese", isVeg: true },
-  // Chinese - Non-Veg
-  { id: "22a", name: "Chicken Chow Mein", price: 140, category: "chinese", isVeg: false },
-  { id: "23a", name: "Chicken Garlic Chow Mein", price: 150, category: "chinese", isVeg: false },
-  { id: "24a", name: "Chicken Schezwan Chow Mein", price: 150, category: "chinese", isVeg: false },
-  { id: "22b", name: "Egg Chow Mein", price: 130, category: "chinese", isVeg: false },
-  { id: "23b", name: "Egg Garlic Chow Mein", price: 140, category: "chinese", isVeg: false },
-  { id: "24b", name: "Egg Schezwan Chow Mein", price: 140, category: "chinese", isVeg: false },
+  // Chinese
+  { id: "c1v", name: "Veg Chow Mein", price: 120, category: "chinese", isVeg: true },
+  { id: "c1nv", name: "Chicken Chow Mein", price: 150, category: "chinese", isVeg: false },
+  { id: "c1e", name: "Egg Chow Mein", price: 140, category: "chinese", isVeg: false },
+  { id: "c2v", name: "Veg Garlic Chow Mein", price: 130, category: "chinese", isVeg: true },
+  { id: "c2nv", name: "Chicken Garlic Chow Mein", price: 160, category: "chinese", isVeg: false },
+  { id: "c3v", name: "Veg Schezwan Chow Mein", price: 130, category: "chinese", isVeg: true },
+  { id: "c3nv", name: "Chicken Schezwan Chow Mein", price: 160, category: "chinese", isVeg: false },
 
-  // Fried Rice - Veg
-  { id: "25", name: "Veg Fried Rice", price: 120, category: "fried-rice", isVeg: true },
-  { id: "26", name: "Veg Garlic Fried Rice", price: 130, category: "fried-rice", isVeg: true },
-  { id: "27", name: "Veg Schezwan Fried Rice", price: 130, category: "fried-rice", isVeg: true },
-  // Fried Rice - Non-Veg
-  { id: "25a", name: "Chicken Fried Rice", price: 140, category: "fried-rice", isVeg: false },
-  { id: "26a", name: "Chicken Garlic Fried Rice", price: 150, category: "fried-rice", isVeg: false },
-  { id: "27a", name: "Chicken Schezwan Fried Rice", price: 150, category: "fried-rice", isVeg: false },
-  { id: "25b", name: "Egg Fried Rice", price: 130, category: "fried-rice", isVeg: false },
-  { id: "26b", name: "Egg Garlic Fried Rice", price: 140, category: "fried-rice", isVeg: false },
-  { id: "27b", name: "Egg Schezwan Fried Rice", price: 140, category: "fried-rice", isVeg: false },
+  // Fried Rice
+  { id: "f1v", name: "Veg Fried Rice", price: 120, category: "fried-rice", isVeg: true },
+  { id: "f1nv", name: "Chicken Fried Rice", price: 150, category: "fried-rice", isVeg: false },
+  { id: "f1e", name: "Egg Fried Rice", price: 140, category: "fried-rice", isVeg: false },
+  { id: "f2v", name: "Veg Garlic Fried Rice", price: 130, category: "fried-rice", isVeg: true },
+  { id: "f2nv", name: "Chicken Garlic Fried Rice", price: 160, category: "fried-rice", isVeg: false },
+  { id: "f3v", name: "Veg Schezwan Fried Rice", price: 130, category: "fried-rice", isVeg: true },
+  { id: "f3nv", name: "Chicken Schezwan Fried Rice", price: 160, category: "fried-rice", isVeg: false },
 
-  // Mains - Veg
-  { id: "28", name: "Chili Paneer (Dry)", price: 130, category: "mains", isVeg: true },
-  { id: "29", name: "Chili Paneer (Gravy)", price: 130, category: "mains", isVeg: true },
-  // Mains - Non-Veg
-  { id: "28a", name: "Chili Chicken (Dry)", price: 150, category: "mains", isVeg: false },
-  { id: "29a", name: "Chili Chicken (Gravy)", price: 150, category: "mains", isVeg: false },
+  // Mains
+  { id: "28", name: "Chili Paneer (Dry/Gravy)", price: 130, category: "mains", isVeg: true },
+  { id: "28a", name: "Chili Chicken (Dry/Gravy)", price: 150, category: "mains", isVeg: false },
 
-  // Soups (Winter Special) - Veg
-  { id: "30", name: "Veg Manchow Soup (Small)", price: 50, category: "soups", isVeg: true },
-  { id: "31", name: "Veg Manchow Soup (Large)", price: 65, category: "soups", isVeg: true },
-  { id: "32", name: "Lemon Coriander Soup (Small)", price: 50, category: "soups", isVeg: true },
-  { id: "33", name: "Lemon Coriander Soup (Large)", price: 65, category: "soups", isVeg: true },
-  { id: "34", name: "Chef's Special Soup (Small)", price: 50, category: "soups", isVeg: true },
-  { id: "35", name: "Chef's Special Soup (Large)", price: 65, category: "soups", isVeg: true },
-  // Soups - Non-Veg
-  { id: "30a", name: "Chicken Manchow Soup (Small)", price: 60, category: "soups", isVeg: false },
-  { id: "31a", name: "Chicken Manchow Soup (Large)", price: 80, category: "soups", isVeg: false },
+  // Soups
+  // Veg Soups (₹50)
+  { id: "s2v", name: "Veg Manchow Soup", price: 50, category: "soups", isVeg: true },
+  { id: "s3v", name: "Veg Lemon Coriander Soup", price: 50, category: "soups", isVeg: true },
+  { id: "s4v", name: "Veg Chef's Special Soup", price: 50, category: "soups", isVeg: true },
 
-  // Winter Special Quick Bites
-  { id: "36", name: "Chilli Oil Eggs", price: 80, category: "winter-special", isVeg: false },
-  { id: "37", name: "Chilli Oil Maggie", price: 80, category: "winter-special", isVeg: true },
-  { id: "38", name: "Egg Sandwich", price: 70, category: "winter-special", isVeg: false },
-  { id: "39", name: "Egg Masala", price: 80, category: "winter-special", isVeg: false },
+  // Non-Veg Soups (₹65)
+  { id: "s2nv", name: "Chicken Manchow Soup", price: 65, category: "soups", isVeg: false },
+  { id: "s3nv", name: "Chicken Lemon Coriander Soup", price: 65, category: "soups", isVeg: false },
+  { id: "s4nv", name: "Chicken Chef's Special Soup", price: 65, category: "soups", isVeg: false },
 
-  // Cheesy Fries
-  { id: "40", name: "Cheesy Fries (Small)", price: 80, category: "fries", isVeg: true },
-  { id: "41", name: "Cheesy Fries (Large)", price: 125, category: "fries", isVeg: true },
-  { id: "42", name: "Cheesy Peri Peri Fries (Small)", price: 90, category: "fries", isVeg: true },
-  { id: "43", name: "Cheesy Peri Peri Fries (Large)", price: 135, category: "fries", isVeg: true },
+  // Fries Category
+  { id: "f1", name: "Honey Chili Fries", price: 120, category: "fries", isVeg: true },
+  { id: "f2", name: "Cheesy Fries", price: 0, priceSmall: 80, priceLarge: 125, category: "fries", isVeg: true, hasVariants: true },
+  { id: "f3", name: "Cheesy Peri Peri Fries", price: 0, priceSmall: 90, priceLarge: 135, category: "fries", isVeg: true, hasVariants: true },
+  { id: "f4", name: "Peri Peri Fries", price: 0, priceSmall: 70, priceLarge: 120, category: "fries", isVeg: true, hasVariants: true },
+  { id: "f5", name: "Salted Fries", price: 0, priceSmall: 60, priceLarge: 110, category: "fries", isVeg: true, hasVariants: true },
 
   // Cold Beverages
+
   { id: "44", name: "Cold Coffee", price: 60, category: "cold-beverages", isVeg: true },
   { id: "45", name: "Cold Chocolate", price: 75, category: "cold-beverages", isVeg: true },
+  { id: "b1", name: "Oreo Shake", price: 80, category: "cold-beverages", isVeg: true },
   { id: "46", name: "Nimbu Pani", price: 25, category: "cold-beverages", isVeg: true },
   { id: "47", name: "Shikanji", price: 40, category: "cold-beverages", isVeg: true },
   { id: "48", name: "Cold Drink (200ml)", price: 20, category: "cold-beverages", isVeg: true },
   { id: "49", name: "Masala Coke", price: 35, category: "cold-beverages", isVeg: true },
   { id: "50", name: "Coke Float", price: 55, category: "cold-beverages", isVeg: true },
   { id: "51", name: "Iced Tea", price: 50, category: "cold-beverages", isVeg: true },
-  { id: "57", name: "Coke (Zero Sugar)", price: 40, category: "cold-beverages", isVeg: true },
-  { id: "58", name: "Diet Coke", price: 40, category: "cold-beverages", isVeg: true },
+  { id: "52", name: "Cold Bournvita", price: 35, category: "cold-beverages", isVeg: true },
+  { id: "53", name: "Diet Coke", price: 40, category: "cold-beverages", isVeg: true },
+
+  // Mocktails (Separated)
+  { id: "mkt1", name: "Mojito", price: 60, category: "mocktails", isVeg: true },
+  { id: "mkt2", name: "Blue Lagoon", price: 60, category: "mocktails", isVeg: true },
+  { id: "mkt3", name: "Green Apple", price: 60, category: "mocktails", isVeg: true },
+  { id: "mkt4", name: "Peach Iced Tea", price: 60, category: "mocktails", isVeg: true },
 
   // Hot Beverages
-  { id: "52", name: "Hot Coffee", price: 30, category: "hot-beverages", isVeg: true },
-  { id: "53", name: "Hot Chocolate", price: 75, category: "hot-beverages", isVeg: true },
-  { id: "54", name: "Bournvita", price: 35, category: "hot-beverages", isVeg: true },
-  { id: "55", name: "Ginger Tea", price: 25, category: "hot-beverages", isVeg: true },
-  { id: "56", name: "Haldi Doodh", price: 40, category: "hot-beverages", isVeg: true },
+  { id: "54", name: "Hot Coffee", price: 30, category: "hot-beverages", isVeg: true },
+  { id: "55", name: "Hot Chocolate", price: 75, category: "hot-beverages", isVeg: true },
+  { id: "56", name: "Ginger Tea", price: 25, category: "hot-beverages", isVeg: true },
+  { id: "59", name: "Haldi Dhoodh", price: 40, category: "hot-beverages", isVeg: true },
+  { id: "58", name: "Hot Bournvita", price: 35, category: "hot-beverages", isVeg: true },
 ];
 
 export const getItemsByCategory = (categoryId: string): MenuItem[] => {
