@@ -17,18 +17,6 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Helper: opens a URL in a way that works on mobile browsers
-// by using a temporary <a> tag click instead of window.open()
-const openUrl = (url: string) => {
-  const a = document.createElement("a");
-  a.href = url;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
-
 const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice: subtotal } = useCart();
   const { toast } = useToast();
@@ -52,16 +40,28 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     const hostelName = customerDetails.hostel === "Other" ? customerDetails.customHostel : customerDetails.hostel;
     const orderItemsText = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
-    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItemsText}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
+
+    const message = [
+      "🛒 *New Order: Cafe Jampot*",
+      "",
+      "*Details:*",
+      `👤 ${customerDetails.name}`,
+      `📱 ${customerDetails.mobile}`,
+      `🏠 ${hostelName}`,
+      "",
+      "*Order:*",
+      orderItemsText,
+      "",
+      `Subtotal: ₹${subtotal}`,
+      `🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}`,
+      `💰 *Total: ₹${finalTotal}*`,
+    ].join("\n");
+
     const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
 
-    // STEP 1: Open WhatsApp IMMEDIATELY inside the click handler
-    // before any async work. This is the only way mobile browsers
-    // allow window.open / link clicks without blocking them.
-    openUrl(whatsappUrl);
+    // Open WhatsApp immediately before any await so mobile browsers don't block it
+    window.open(whatsappUrl, "_blank");
 
-    // STEP 2: Now do the async DB work in the background.
-    // The user is already being taken to WhatsApp — this runs silently.
     try {
       const { error } = await supabase
         .from("orders")
@@ -78,7 +78,6 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
       if (error) throw error;
 
-      // STEP 3: Show success UI after confirmed DB write
       setShowSuccess(true);
       setTimeout(() => {
         clearCart();
@@ -89,8 +88,6 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     } catch (error: any) {
       console.error("Database Error:", error);
-      // WhatsApp already opened so the order isn't lost.
-      // Just notify staff to manually log it.
       toast({
         title: "Heads up!",
         description: "Your WhatsApp order went through, but dashboard sync failed. Please inform the staff.",
@@ -173,8 +170,17 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
               {/* Delivery Form */}
               <div className="space-y-4 border-t pt-4">
                 <Label className="text-lg font-bold">Delivery to Hostel</Label>
-                <Input placeholder="Your Name" value={customerDetails.name} onChange={e => setCustomerDetails({ ...customerDetails, name: e.target.value })} />
-                <Input placeholder="Mobile Number" type="tel" value={customerDetails.mobile} onChange={e => setCustomerDetails({ ...customerDetails, mobile: e.target.value })} />
+                <Input
+                  placeholder="Your Name"
+                  value={customerDetails.name}
+                  onChange={e => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                />
+                <Input
+                  placeholder="Mobile Number"
+                  type="tel"
+                  value={customerDetails.mobile}
+                  onChange={e => setCustomerDetails({ ...customerDetails, mobile: e.target.value })}
+                />
                 <select
                   className="w-full p-2 rounded-md border bg-background"
                   value={customerDetails.hostel}
@@ -211,7 +217,8 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
               </span>
             </div>
             <div className="flex justify-between text-xl font-bold border-t pt-2">
-              <span>Total</span><span className="text-primary">₹{finalTotal}</span>
+              <span>Total</span>
+              <span className="text-primary">₹{finalTotal}</span>
             </div>
             <Button onClick={handleSubmitOrder} disabled={isSubmitting} className="w-full py-6 text-lg font-bold gap-2">
               <Send className="w-5 h-5" /> Place Order
