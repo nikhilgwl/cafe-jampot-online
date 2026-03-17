@@ -32,31 +32,32 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
   const progress = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
 
   const handleSubmitOrder = async () => {
+    // 1. Validate customer details
     if (!customerDetails.name.trim() || customerDetails.mobile.length < 10 || !customerDetails.hostel) {
-      toast({ title: "Missing Details", description: "Please fill all delivery info.", variant: "destructive" });
+      toast({
+        title: "Missing Details",
+        description: "Please fill all delivery info.",
+        variant: "destructive"
+      });
       return;
     }
 
     setIsSubmitting(true);
 
-    // 1. Prepare data and message
+    // 2. Prepare order data
     const hostelName = customerDetails.hostel === "Other" ? customerDetails.customHostel : customerDetails.hostel;
-    const orderItems = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
-    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItems}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
+    const orderItemsText = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
+    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItemsText}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
 
     try {
-      // 2. Open WhatsApp FIRST to prioritize the user's action
-      const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank");
-
-      // 3. IMMEDIATELY write to Supabase while the user is being redirected
+      // 3. MANDATORY: Wait for Supabase to confirm the insert before proceeding
       const { error } = await supabase
         .from("orders")
         .insert({
           customer_name: customerDetails.name,
           customer_mobile: customerDetails.mobile,
           hostel_name: hostelName || "Unknown",
-          items: items as any,
+          items: items as any, // Cast to any to satisfy JSONB requirements
           subtotal: subtotal,
           delivery_fee: deliveryFee,
           total_amount: finalTotal,
@@ -65,10 +66,14 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
       if (error) throw error;
 
-      // 4. Trigger the Success UI
+      // 4. Trigger the Success UI only after a confirmed DB write
       setShowSuccess(true);
 
+      const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
+
+      // 5. Short delay to let the user see the success animation before redirecting
       setTimeout(() => {
+        window.open(whatsappUrl, "_blank");
         clearCart();
         setShowSuccess(false);
         setIsSubmitting(false);
@@ -77,11 +82,17 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     } catch (error: any) {
       console.error("Database Error:", error);
+
+      // Fallback: If DB fails, we still let them order via WhatsApp so you don't lose the sale
       toast({
         title: "Order Logged to WhatsApp",
-        description: "WhatsApp opened, but we couldn't sync to the dashboard. Please inform Mr. Nikhil.",
+        description: "WhatsApp opened, but we couldn't sync to the dashboard. Please inform the staff.",
         variant: "destructive"
       });
+
+      const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, "_blank");
+
       setIsSubmitting(false);
     }
   };
