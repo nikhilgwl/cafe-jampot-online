@@ -17,6 +17,18 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper: opens a URL in a way that works on mobile browsers
+// by using a temporary <a> tag click instead of window.open()
+const openUrl = (url: string) => {
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
 const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { items, updateQuantity, removeItem, clearCart, totalPrice: subtotal } = useCart();
   const { toast } = useToast();
@@ -25,7 +37,6 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Delivery Logic
   const FREE_DELIVERY_THRESHOLD = 100;
   const deliveryFee = subtotal > 0 && subtotal < FREE_DELIVERY_THRESHOLD ? 10 : 0;
   const finalTotal = subtotal + deliveryFee;
@@ -39,17 +50,19 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     setIsSubmitting(true);
 
-    // 1. Prepare data and message
     const hostelName = customerDetails.hostel === "Other" ? customerDetails.customHostel : customerDetails.hostel;
-    const orderItems = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
-    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItems}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
+    const orderItemsText = items.map(i => `• ${i.name} x${i.quantity} - ₹${i.price * i.quantity}`).join("\n");
+    const message = `🛒 *New Order: Cafe Jampot*\n\n*Details:*\n👤 ${customerDetails.name}\n📱 ${customerDetails.mobile}\n🏠 ${hostelName}\n\n*Order:*\n${orderItemsText}\n\nSubtotal: ₹${subtotal}\n🚚 Delivery: ${deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}\n💰 *Total: ₹${finalTotal}*`;
+    const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
 
+    // STEP 1: Open WhatsApp IMMEDIATELY inside the click handler
+    // before any async work. This is the only way mobile browsers
+    // allow window.open / link clicks without blocking them.
+    openUrl(whatsappUrl);
+
+    // STEP 2: Now do the async DB work in the background.
+    // The user is already being taken to WhatsApp — this runs silently.
     try {
-      // 2. Open WhatsApp FIRST to prioritize the user's action
-      const whatsappUrl = `https://wa.me/918789512909?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank");
-
-      // 3. IMMEDIATELY write to Supabase while the user is being redirected
       const { error } = await supabase
         .from("orders")
         .insert({
@@ -57,17 +70,16 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
           customer_mobile: customerDetails.mobile,
           hostel_name: hostelName || "Unknown",
           items: items as any,
-          subtotal: subtotal,
+          subtotal,
           delivery_fee: deliveryFee,
           total_amount: finalTotal,
-          status: 'pending'
+          status: "pending",
         });
 
       if (error) throw error;
 
-      // 4. Trigger the Success UI
+      // STEP 3: Show success UI after confirmed DB write
       setShowSuccess(true);
-
       setTimeout(() => {
         clearCart();
         setShowSuccess(false);
@@ -77,10 +89,12 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
     } catch (error: any) {
       console.error("Database Error:", error);
+      // WhatsApp already opened so the order isn't lost.
+      // Just notify staff to manually log it.
       toast({
-        title: "Order Logged to WhatsApp",
-        description: "WhatsApp opened, but we couldn't sync to the dashboard. Please inform Mr. Nikhil.",
-        variant: "destructive"
+        title: "Heads up!",
+        description: "Your WhatsApp order went through, but dashboard sync failed. Please inform the staff.",
+        variant: "destructive",
       });
       setIsSubmitting(false);
     }
@@ -90,7 +104,6 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg p-0 overflow-hidden flex flex-col">
 
-        {/* Success Overlay */}
         <AnimatePresence>
           {showSuccess && (
             <motion.div
@@ -98,7 +111,8 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
               className="absolute inset-0 z-50 bg-primary flex flex-col items-center justify-center text-primary-foreground p-6 text-center"
             >
               <motion.div
-                initial={{ scale: 0 }} animate={{ scale: 1, rotate: 360 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                initial={{ scale: 0 }} animate={{ scale: 1, rotate: 360 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
                 <CheckCircle2 className="w-24 h-24 mb-4" />
               </motion.div>
@@ -109,12 +123,19 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
         </AnimatePresence>
 
         <div className="p-6 border-b">
-          <SheetHeader><SheetTitle className="flex items-center gap-2"><ShoppingBag className="text-primary" /> Your Cart</SheetTitle></SheetHeader>
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <ShoppingBag className="text-primary" /> Your Cart
+            </SheetTitle>
+          </SheetHeader>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {items.length === 0 ? (
-            <div className="text-center py-12 opacity-50"><ShoppingBag className="w-12 h-12 mx-auto mb-4" />Your cart is empty</div>
+            <div className="text-center py-12 opacity-50">
+              <ShoppingBag className="w-12 h-12 mx-auto mb-4" />
+              Your cart is empty
+            </div>
           ) : (
             <>
               {/* Progress Bar */}
@@ -124,7 +145,11 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className={`h-full ${subtotal >= 100 ? 'bg-green-500' : 'bg-primary'}`} />
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    className={`h-full ${subtotal >= 100 ? "bg-green-500" : "bg-primary"}`}
+                  />
                 </div>
               </div>
 
@@ -164,6 +189,13 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
                   <option value="NH (Boys)">NH (Boys)</option>
                   <option value="Other">Other</option>
                 </select>
+                {customerDetails.hostel === "Other" && (
+                  <Input
+                    placeholder="Enter your hostel name"
+                    value={customerDetails.customHostel}
+                    onChange={e => setCustomerDetails({ ...customerDetails, customHostel: e.target.value })}
+                  />
+                )}
               </div>
             </>
           )}
@@ -172,8 +204,15 @@ const CartSheet: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
         {items.length > 0 && (
           <div className="p-6 bg-card border-t space-y-4">
             <div className="flex justify-between text-sm"><span>Subtotal</span><span>₹{subtotal}</span></div>
-            <div className="flex justify-between text-sm"><span>Delivery</span><span className={deliveryFee === 0 ? "text-green-600 font-bold" : ""}>{deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}</span></div>
-            <div className="flex justify-between text-xl font-bold border-t pt-2"><span>Total</span><span className="text-primary">₹{finalTotal}</span></div>
+            <div className="flex justify-between text-sm">
+              <span>Delivery</span>
+              <span className={deliveryFee === 0 ? "text-green-600 font-bold" : ""}>
+                {deliveryFee === 0 ? "FREE" : `₹${deliveryFee}`}
+              </span>
+            </div>
+            <div className="flex justify-between text-xl font-bold border-t pt-2">
+              <span>Total</span><span className="text-primary">₹{finalTotal}</span>
+            </div>
             <Button onClick={handleSubmitOrder} disabled={isSubmitting} className="w-full py-6 text-lg font-bold gap-2">
               <Send className="w-5 h-5" /> Place Order
             </Button>
