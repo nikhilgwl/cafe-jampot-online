@@ -7,7 +7,7 @@ import jampotLogo from "@/assets/jampot-logo.png";
 // Vite's import.meta.glob scans the folder at BUILD TIME — no manual list needed.
 // Just drop your photos into src/assets/merch-photos/ and they appear automatically.
 const photoModules = import.meta.glob(
-    "/src/assets/merch-photos/*",
+    "/src/assets/merch-photos/*.jpg",
     { eager: true }
 ) as Record<string, { default: string }>;
 
