@@ -28,11 +28,11 @@ const IndexContent: React.FC = () => {
   // Delivery state
   const [dbDeliveryOpen, setDbDeliveryOpen] = useState<boolean | null>(null);
   const [adminOverride, setAdminOverride] = useState(false);
+  const [dineInOnly, setDineInOnly] = useState(false);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
   const [isDeliveryLoading, setIsDeliveryLoading] = useState(true);
   const [dbMenuItems, setDbMenuItems] = useState<MenuItem[]>([]);
   const [isMenuLoading, setIsMenuLoading] = useState(true);
-
 
   /* ---------------- Fetch delivery flag ---------------- */
   useEffect(() => {
@@ -40,7 +40,7 @@ const IndexContent: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from("delivery_settings")
-          .select("is_open, admin_override")
+          .select("is_open, admin_override, dine_in_only")
           .limit(1)
           .maybeSingle();
 
@@ -48,9 +48,11 @@ const IndexContent: React.FC = () => {
           console.error("Failed to fetch delivery status:", error);
           setDbDeliveryOpen(false);
           setAdminOverride(false);
+          setDineInOnly(false);
         } else {
           setDbDeliveryOpen(data?.is_open ?? false);
           setAdminOverride((data as any)?.admin_override ?? false);
+          setDineInOnly((data as any)?.dine_in_only ?? false);
         }
       } finally {
         setIsDeliveryLoading(false);
@@ -65,9 +67,14 @@ const IndexContent: React.FC = () => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "delivery_settings" },
         (payload) => {
-          const newData = payload.new as { is_open: boolean; admin_override: boolean };
+          const newData = payload.new as {
+            is_open: boolean;
+            admin_override: boolean;
+            dine_in_only: boolean;
+          };
           setDbDeliveryOpen(newData?.is_open ?? false);
           setAdminOverride(newData?.admin_override ?? false);
+          setDineInOnly(newData?.dine_in_only ?? false);
         }
       )
       .subscribe();
@@ -102,7 +109,7 @@ const IndexContent: React.FC = () => {
           priceLarge: item.price_large,
           category: item.category,
           isVeg: item.is_veg,
-          hasVariants: !!(item.price_small || item.price_large)
+          hasVariants: !!(item.price_small || item.price_large),
         }));
 
         setDbMenuItems(mappedItems);
@@ -164,7 +171,6 @@ const IndexContent: React.FC = () => {
 
   /* ---------------- Menu filtering logic ---------------- */
   const availableItems = useMemo(() => {
-    // filter by stockStatus if you still maintain that logic separately
     return dbMenuItems.filter((item) => stockStatus[item.id] !== false);
   }, [dbMenuItems, stockStatus]);
 
@@ -232,7 +238,7 @@ const IndexContent: React.FC = () => {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ✅ Loader */}
+      {/* Loader */}
       {isDeliveryLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <div className="flex flex-col items-center gap-4">
@@ -244,7 +250,7 @@ const IndexContent: React.FC = () => {
         </div>
       )}
 
-      <Header isOpen={isDeliveryOpen} />
+      <Header isOpen={isDeliveryOpen} dineInOnly={dineInOnly} />
 
       {!isDeliveryLoading && isDeliveryOpen && (
         <>
@@ -272,13 +278,32 @@ const IndexContent: React.FC = () => {
         {!isDeliveryLoading && !isDeliveryOpen ? (
           /* CLOSED STATE */
           <div className="flex flex-col items-center justify-center text-center px-6 py-16 min-h-[50vh]">
-            <p className="font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed">
-              Your favorite cafe is currently closed. Please drop by later to
-              order.
-            </p>
-            <p className="mt-6 text-lg text-muted-foreground">
-              Bon Appétit Café Jampot ❤️
-            </p>
+            {dineInOnly ? (
+              /* Delivery closed but dine-in is open */
+              <>
+                <div className="text-5xl mb-6">🍽️</div>
+                <p className="font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed">
+                  We're not delivering right now, but the café is open!
+                </p>
+                <p className="mt-4 text-base text-muted-foreground max-w-sm leading-relaxed">
+                  Come visit us on campus and enjoy your favourite food fresh at the café.
+                </p>
+                <p className="mt-6 text-lg text-muted-foreground">
+                  Bon Appétit Café Jampot ❤️
+                </p>
+              </>
+            ) : (
+              /* Fully closed */
+              <>
+                <p className="font-display text-xl md:text-2xl text-foreground max-w-md leading-relaxed">
+                  Your favorite cafe is currently closed. Please drop by later to
+                  order.
+                </p>
+                <p className="mt-6 text-lg text-muted-foreground">
+                  Bon Appétit Café Jampot ❤️
+                </p>
+              </>
+            )}
           </div>
         ) : !isDeliveryLoading && isDeliveryOpen ? (
           /* OPEN STATE */
