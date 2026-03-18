@@ -8,10 +8,10 @@ import jampotLogo from "@/assets/jampot-logo.png";
 // Just drop your photos into src/assets/merch-photos/ and they appear automatically.
 const photoModules = import.meta.glob(
     "/src/assets/merch-photos/*",
-    { eager: true, query: "?url", import: "default" }
-) as Record<string, string>;
+    { eager: true }
+) as Record<string, { default: string }>;
 
-const ALL_PHOTOS: string[] = Object.values(photoModules);
+const ALL_PHOTOS: string[] = Object.values(photoModules).map(m => m.default);
 
 // Fisher-Yates shuffle for variety on each page load
 const shuffle = <T,>(arr: T[]): T[] => {
