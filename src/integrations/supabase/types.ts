@@ -44,14 +44,15 @@ export type Database = {
             delivery_settings: {
                 Row: {
                     admin_override: boolean
+                    dine_in_only: boolean
                     id: string
                     is_open: boolean
-                    dine_in_only?: boolean  // ← add this line
                     updated_at: string
                     updated_by: string | null
                 }
                 Insert: {
                     admin_override?: boolean
+                    dine_in_only?: boolean
                     id?: string
                     is_open?: boolean
                     updated_at?: string
@@ -59,6 +60,7 @@ export type Database = {
                 }
                 Update: {
                     admin_override?: boolean
+                    dine_in_only?: boolean
                     id?: string
                     is_open?: boolean
                     updated_at?: string
@@ -123,31 +125,112 @@ export type Database = {
                 }
                 Relationships: []
             }
+            merch_orders: {
+                Row: {
+                    id: string
+                    batch_id: string
+                    frame_index: number
+                    buyer_name: string
+                    roll_number: string
+                    mobile: string
+                    email: string
+                    photo_url: string
+                    payment_proof_url: string
+                    amount: number
+                    total_amount: number
+                    quantity: number
+                    status: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    batch_id: string
+                    frame_index: number
+                    buyer_name: string
+                    roll_number: string
+                    mobile: string
+                    email: string
+                    photo_url: string
+                    payment_proof_url: string
+                    amount?: number
+                    total_amount: number
+                    quantity: number
+                    status?: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    batch_id?: string
+                    frame_index?: number
+                    buyer_name?: string
+                    roll_number?: string
+                    mobile?: string
+                    email?: string
+                    photo_url?: string
+                    payment_proof_url?: string
+                    amount?: number
+                    total_amount?: number
+                    quantity?: number
+                    status?: string
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            merch_settings: {
+                Row: {
+                    id: string
+                    is_open: boolean
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    is_open?: boolean
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    is_open?: boolean
+                    updated_at?: string
+                }
+                Relationships: []
+            }
             orders: {
                 Row: {
                     created_at: string
+                    customer_mobile: string
+                    customer_name: string
+                    delivery_fee: number
                     hostel_name: string
                     id: string
                     items: Json
                     status: string
+                    subtotal: number
                     total_amount: number
                     user_id: string | null
                 }
                 Insert: {
                     created_at?: string
+                    customer_mobile: string
+                    customer_name: string
+                    delivery_fee?: number
                     hostel_name: string
                     id?: string
                     items: Json
                     status?: string
+                    subtotal: number
                     total_amount: number
                     user_id?: string | null
                 }
                 Update: {
                     created_at?: string
+                    customer_mobile?: string
+                    customer_name?: string
+                    delivery_fee?: number
                     hostel_name?: string
                     id?: string
                     items?: Json
                     status?: string
+                    subtotal?: number
                     total_amount?: number
                     user_id?: string | null
                 }

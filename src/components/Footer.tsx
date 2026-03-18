@@ -1,6 +1,6 @@
 import React from 'react';
 import { Instagram, Phone, MapPin } from 'lucide-react';
-import jampotLogo from '@/assets/cafe-jampot-logo.png';
+import jampotLogo from '@/assets/jampot-logo.png';
 
 const Footer: React.FC = () => {
   return (

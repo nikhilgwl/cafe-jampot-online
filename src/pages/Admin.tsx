@@ -23,9 +23,10 @@ import {
   PlusCircle,
   UtensilsCrossed,
   Coffee,
+  ShoppingBag,
 } from "lucide-react";
 import { categories } from "@/data/menuData";
-import jampotLogo from "@/assets/cafe-jampot-logo.png";
+import jampotLogo from "@/assets/jampot-logo.png";
 import { isWithinDeliveryWindow } from "@/lib/deliveryWindow";
 import {
   AlertDialog,
@@ -74,6 +75,8 @@ const Admin: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(true);
   const [dineInOnly, setDineInOnly] = useState(false);
+  const [merchOpen, setMerchOpen] = useState(true);
+  const [updatingMerch, setUpdatingMerch] = useState(false);
   const [stockStatus, setStockStatus] = useState<{ [key: string]: boolean }>({});
   const [dbMenuItems, setDbMenuItems] = useState<MenuItemDB[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -154,6 +157,14 @@ const Admin: React.FC = () => {
         setIsDeliveryOpen(deliveryData.is_open);
         setDineInOnly((deliveryData as any)?.dine_in_only ?? false);
       }
+
+      // 3. Load merch settings
+      const { data: merchData } = await supabase
+        .from("merch_settings")
+        .select("is_open")
+        .limit(1)
+        .maybeSingle() as any;
+      if (merchData) setMerchOpen(merchData.is_open ?? true);
 
       // 3. Load stock status
       const { data: stockData } = await supabase
@@ -258,8 +269,8 @@ const Admin: React.FC = () => {
       const toastTitle = isOpen
         ? "Delivery Opened"
         : newDineInOnly
-        ? "Delivery Closed — Dine-in still open"
-        : "Fully Closed";
+          ? "Delivery Closed — Dine-in still open"
+          : "Fully Closed";
       toast({ title: toastTitle });
     }
     setUpdatingDelivery(false);
@@ -283,6 +294,23 @@ const Admin: React.FC = () => {
   const handleDineInOnlyToggle = async (checked: boolean) => {
     // This toggle only makes sense when delivery is already closed
     await updateDelivery(false, false, checked);
+  };
+
+  const updateMerch = async (isOpen: boolean) => {
+    setUpdatingMerch(true);
+    const { data: row } = await supabase.from("merch_settings").select("id").limit(1).single() as any;
+    const { error } = await supabase
+      .from("merch_settings")
+      .update({ is_open: isOpen } as any)
+      .eq("id", row?.id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to update merch status", variant: "destructive" });
+    } else {
+      setMerchOpen(isOpen);
+      toast({ title: isOpen ? "Merch Orders Opened" : "Merch Orders Closed" });
+    }
+    setUpdatingMerch(false);
   };
 
   const handleStockToggle = async (itemId: string, itemName: string, isAvailable: boolean) => {
@@ -411,6 +439,52 @@ const Admin: React.FC = () => {
               </div>
             )}
 
+          </CardContent>
+        </Card>
+
+        {/* ---- Merch Orders Card ---- */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5" /> Merch Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={merchOpen}
+                  onCheckedChange={updateMerch}
+                  disabled={updatingMerch}
+                />
+                <Label className="text-sm font-medium">
+                  {merchOpen ? "Merch Orders Open" : "Merch Orders Closed"}
+                </Label>
+              </div>
+              <Badge variant={merchOpen ? "default" : "secondary"}>
+                {merchOpen ? "OPEN" : "CLOSED"}
+              </Badge>
+            </div>
+
+            {!merchOpen && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-sm text-amber-800 font-medium mb-1">Closed message shown to customers:</p>
+                <p className="text-sm text-amber-700 italic">
+                  "Orders are currently closed. Please contact Jampot partners for further details."
+                </p>
+              </div>
+            )}
+
+            <div className="pt-1">
+              <a
+                href="/merch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground underline underline-offset-2 hover:text-primary"
+              >
+                View merch page →
+              </a>
+            </div>
           </CardContent>
         </Card>
 

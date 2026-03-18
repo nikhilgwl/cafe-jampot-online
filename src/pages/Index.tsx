@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import CategoryFilter from "@/components/CategoryFilter";
+import jampotLogo from '@/assets/jampot-logo.png';
 import MenuSection from "@/components/MenuSection";
 import SearchBar from "@/components/SearchBar";
 import VegFilter, { VegFilterType } from "@/components/VegFilter";
@@ -242,7 +243,14 @@ const IndexContent: React.FC = () => {
       {isDeliveryLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <div className="w-[82px] h-[82px] rounded-[28px] bg-primary/10 backdrop-blur-sm p-3 flex items-center justify-center">
+              <img
+                src={jampotLogo}
+                alt="Loading"
+                className="w-full h-full object-contain"
+                style={{ animation: "jampot-pulse 1.4s ease-in-out infinite" }}
+              />
+            </div>
             <p className="text-muted-foreground text-sm">
               Checking café availability...
             </p>

@@ -17,7 +17,7 @@ import {
   Users,
   Truck
 } from "lucide-react";
-import jampotLogo from "@/assets/cafe-jampot-logo.png";
+import jampotLogo from "@/assets/jampot-logo.png";
 import { format, subDays, startOfDay, endOfDay, parseISO } from "date-fns";
 
 interface Order {

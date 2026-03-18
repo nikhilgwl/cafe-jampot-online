@@ -1,5 +1,5 @@
 import React from 'react';
-import jampotLogo from '@/assets/cafe-jampot-logo.png';
+import jampotLogo from '@/assets/jampot-logo.png';
 
 interface HeaderProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ isOpen, dineInOnly }) => {
     <header className="bg-primary text-primary-foreground py-3 px-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-foreground/10 backdrop-blur-sm p-1.5 flex items-center justify-center">
+          <div className="w-[68px] h-[68px] rounded-3xl bg-primary-foreground/10 backdrop-blur-sm p-2 flex items-center justify-center">
             <img
               src={jampotLogo}
               alt="Cafe Jampot Logo"

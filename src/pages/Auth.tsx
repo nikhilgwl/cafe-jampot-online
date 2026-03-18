@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
-import jampotLogo from "@/assets/cafe-jampot-logo.png";
+import jampotLogo from "@/assets/jampot-logo.png";
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
@@ -159,7 +159,7 @@ const Auth: React.FC = () => {
 
               <div className="text-center">
                 <Button variant="link" onClick={() => navigate("/")}
-                  >← Back to Menu</Button
+                >← Back to Menu</Button
                 >
               </div>
             </div>
