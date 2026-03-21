@@ -239,22 +239,33 @@ const IndexContent: React.FC = () => {
   /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Loader */}
+
+      {/* Jampot pulsing loader */}
       {isDeliveryLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-[82px] h-[82px] rounded-[28px] bg-primary/10 backdrop-blur-sm p-3 flex items-center justify-center">
-              <img
-                src={jampotLogo}
-                alt="Loading"
-                className="w-full h-full object-contain"
-                style={{ animation: "jampot-pulse 1.4s ease-in-out infinite" }}
-              />
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Checking café availability...
-            </p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "#faf7f2" }}
+        >
+          <div
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: 28,
+              background: "#1a0d05",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              animation: "jampot-pulse 1.4s ease-in-out infinite",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+            }}
+          >
+            <img
+              src={jampotLogo}
+              alt="Loading"
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 16 }}
+            />
           </div>
+          <style>{`@keyframes jampot-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.28;transform:scale(0.84)} }`}</style>
         </div>
       )}
 

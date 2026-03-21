@@ -8,18 +8,16 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-primary-foreground/10 p-1 flex items-center justify-center">
-              <img 
-                src={jampotLogo} 
-                alt="Cafe Jampot Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <img
+              src={jampotLogo}
+              alt="Cafe Jampot Logo"
+              className="w-7 h-7 rounded-lg object-cover flex-shrink-0"
+            />
             <span className="font-display text-base font-semibold">Cafe Jampot</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-            <a 
+            <a
               href="tel:+918789512909"
               className="flex items-center gap-1.5 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
